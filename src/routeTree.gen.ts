@@ -30,6 +30,7 @@ import { Route as AdminSetupRouteImport } from './routes/admin.setup'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AppSalesIndexRouteImport } from './routes/app.sales.index'
 import { Route as AppPurchasesIndexRouteImport } from './routes/app.purchases.index'
 import { Route as AppPurchasesNewRouteImport } from './routes/app.purchases.new'
 import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
@@ -140,6 +141,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppSalesIndexRoute = AppSalesIndexRouteImport.update({
+  id: '/sales/',
+  path: '/sales/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPurchasesIndexRoute = AppPurchasesIndexRouteImport.update({
   id: '/purchases/',
   path: '/purchases/',
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
+  '/app/sales/': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/purchases': typeof AppPurchasesIndexRoute
+  '/app/sales': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
+  '/app/sales/': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -268,6 +277,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/app/purchases/new'
     | '/app/purchases/'
+    | '/app/sales/'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesByTo: FileRoutesByTo
@@ -293,6 +303,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/purchases/new'
     | '/app/purchases'
+    | '/app/sales'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   id:
@@ -320,6 +331,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/app/purchases/new'
     | '/app/purchases/'
+    | '/app/sales/'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesById: FileRoutesById
@@ -483,6 +495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/sales/': {
+      id: '/app/sales/'
+      path: '/sales'
+      fullPath: '/app/sales/'
+      preLoaderRoute: typeof AppSalesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/purchases/': {
       id: '/app/purchases/'
       path: '/purchases'
@@ -549,6 +568,7 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppPurchasesNewRoute: typeof AppPurchasesNewRoute
   AppPurchasesIndexRoute: typeof AppPurchasesIndexRoute
+  AppSalesIndexRoute: typeof AppSalesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -562,6 +582,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppPurchasesNewRoute: AppPurchasesNewRoute,
   AppPurchasesIndexRoute: AppPurchasesIndexRoute,
+  AppSalesIndexRoute: AppSalesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
