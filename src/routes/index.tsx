@@ -31,7 +31,7 @@ function Landing() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-16">
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
         <section className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
             মুদি দোকানের সম্পূর্ণ ম্যানেজমেন্ট সফটওয়্যার
