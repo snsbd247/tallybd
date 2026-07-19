@@ -31,7 +31,7 @@ function ShopDashboard() {
   const snap = snapQ.data;
 
   const recent = (recentSalesQ.data ?? []).slice(0, 6);
-  const overdue = overdueQ.data?.items ?? [];
+  const overdue = (overdueQ.data as any)?.rows ?? [];
 
   return (
     <div className="space-y-6 p-6">
