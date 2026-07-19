@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 
-export const Route = createFileRoute("/app/purchases")({ component: Page });
+export const Route = createFileRoute("/app/purchases/")({ component: Page });
 
 function Page() {
   const fn = useServerFn(listPurchases);
