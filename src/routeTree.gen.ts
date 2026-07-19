@@ -25,6 +25,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
+import { Route as ApiPublicBkashCallbackRouteImport } from './routes/api/public/bkash/callback'
 
 const RenewRoute = RenewRouteImport.update({
   id: '/renew',
@@ -107,6 +108,11 @@ const ApiPublicCronExpiryCheckRoute =
     path: '/api/public/cron/expiry-check',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicBkashCallbackRoute = ApiPublicBkashCallbackRouteImport.update({
+  id: '/api/public/bkash/callback',
+  path: '/api/public/bkash/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/app/subscription': typeof AppSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
 export interface FileRoutesByTo {
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/app/subscription': typeof AppSubscriptionRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
 export interface FileRoutesById {
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/app/subscription': typeof AppSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
 export interface FileRouteTypes {
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/app/subscription'
     | '/admin/'
     | '/app/'
+    | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/app/subscription'
     | '/admin'
     | '/app'
+    | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   id:
     | '__root__'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/app/subscription'
     | '/admin/'
     | '/app/'
+    | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesById: FileRoutesById
 }
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   RenewRoute: typeof RenewRoute
+  ApiPublicBkashCallbackRoute: typeof ApiPublicBkashCallbackRoute
   ApiPublicCronExpiryCheckRoute: typeof ApiPublicCronExpiryCheckRoute
 }
 
@@ -339,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronExpiryCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/bkash/callback': {
+      id: '/api/public/bkash/callback'
+      path: '/api/public/bkash/callback'
+      fullPath: '/api/public/bkash/callback'
+      preLoaderRoute: typeof ApiPublicBkashCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -384,6 +404,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   RenewRoute: RenewRoute,
+  ApiPublicBkashCallbackRoute: ApiPublicBkashCallbackRoute,
   ApiPublicCronExpiryCheckRoute: ApiPublicCronExpiryCheckRoute,
 }
 export const routeTree = rootRouteImport
