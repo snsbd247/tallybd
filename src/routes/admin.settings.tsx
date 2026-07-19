@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { Send } from "lucide-react";
 
 export const Route = createFileRoute("/admin/settings")({ component: SettingsPage });
 
