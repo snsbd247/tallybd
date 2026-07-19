@@ -49,6 +49,184 @@ export type Database = {
           },
         ]
       }
+      customer_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          id: string
+          note: string | null
+          payment_date: string
+          payment_method: string
+          reference: string | null
+          sale_id: string | null
+          shop_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          id?: string
+          note?: string | null
+          payment_date?: string
+          payment_method?: string
+          reference?: string | null
+          sale_id?: string | null
+          shop_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          id?: string
+          note?: string | null
+          payment_date?: string
+          payment_method?: string
+          reference?: string | null
+          sale_id?: string | null
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_payments_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_payments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          current_balance: number
+          id: string
+          is_active: boolean
+          name: string
+          note: string | null
+          opening_balance: number
+          phone: string | null
+          shop_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_balance?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          note?: string | null
+          opening_balance?: number
+          phone?: string | null
+          shop_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_balance?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          note?: string | null
+          opening_balance?: number
+          phone?: string | null
+          shop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      installment_schedules: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string
+          due_date: string
+          id: string
+          installment_no: number
+          paid_amount: number
+          sale_id: string
+          shop_id: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_id: string
+          due_date: string
+          id?: string
+          installment_no: number
+          paid_amount?: number
+          sale_id: string
+          shop_id: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string
+          due_date?: string
+          id?: string
+          installment_no?: number
+          paid_amount?: number
+          sale_id?: string
+          shop_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installment_schedules_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "installment_schedules_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "installment_schedules_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           created_at: string
@@ -362,6 +540,133 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sale_items: {
+        Row: {
+          created_at: string
+          id: string
+          line_total: number
+          product_id: string
+          quantity: number
+          sale_id: string
+          shop_id: string
+          unit_cost: number | null
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          line_total: number
+          product_id: string
+          quantity: number
+          sale_id: string
+          shop_id: string
+          unit_cost?: number | null
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          line_total?: number
+          product_id?: string
+          quantity?: number
+          sale_id?: string
+          shop_id?: string
+          unit_cost?: number | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          discount: number
+          due: number
+          id: string
+          invoice_no: string | null
+          note: string | null
+          paid: number
+          payment_method: string
+          sale_date: string
+          sale_type: string
+          shop_id: string
+          subtotal: number
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          discount?: number
+          due?: number
+          id?: string
+          invoice_no?: string | null
+          note?: string | null
+          paid?: number
+          payment_method?: string
+          sale_date?: string
+          sale_type?: string
+          shop_id: string
+          subtotal?: number
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          discount?: number
+          due?: number
+          id?: string
+          invoice_no?: string | null
+          note?: string | null
+          paid?: number
+          payment_method?: string
+          sale_date?: string
+          sale_type?: string
+          shop_id?: string
+          subtotal?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
         ]
@@ -919,6 +1224,24 @@ export type Database = {
         }
         Returns: string
       }
+      create_sale: {
+        Args: {
+          _customer_id: string
+          _discount: number
+          _installment_frequency: string
+          _installment_start: string
+          _installments: number
+          _invoice_no: string
+          _items: Json
+          _note: string
+          _paid: number
+          _payment_method: string
+          _sale_date: string
+          _sale_type: string
+          _shop_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -940,6 +1263,19 @@ export type Database = {
           _reference: string
           _shop_id: string
           _supplier_id: string
+        }
+        Returns: string
+      }
+      receive_customer_payment: {
+        Args: {
+          _amount: number
+          _customer_id: string
+          _note: string
+          _payment_date: string
+          _payment_method: string
+          _reference: string
+          _sale_id: string
+          _shop_id: string
         }
         Returns: string
       }
