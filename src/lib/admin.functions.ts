@@ -393,6 +393,28 @@ export const approveSubscriptionPayment = createServerFn({ method: "POST" })
       });
     }
 
+    // SMS: upgraded (if package changed) or renewed
+    try {
+      const { sendTemplateSMS } = await import("./sms.server");
+      const { data: pkgRow } = await supabaseAdmin
+        .from("packages").select("name").eq("id", pkgId!).maybeSingle();
+      const isUpgrade = pkgId && shop.package_id && pkgId !== shop.package_id;
+      const endStr = new Date(base).toLocaleDateString("bn-BD");
+      if (isUpgrade) {
+        await sendTemplateSMS("upgraded", shop.phone, {
+          shop_name: shop.name, owner: shop.owner_name,
+          package: pkgRow?.name ?? "", end_date: endStr, amount: pay.amount,
+        }, { shopId: shop.id });
+      } else {
+        await sendTemplateSMS("renewed", shop.phone, {
+          shop_name: shop.name, owner: shop.owner_name,
+          package: pkgRow?.name ?? "", end_date: endStr, amount: pay.amount,
+        }, { shopId: shop.id });
+      }
+    } catch (e) {
+      console.error("renewal SMS failed", e);
+    }
+
     return { ok: true };
   });
 
