@@ -127,7 +127,20 @@ export const createShop = createServerFn({ method: "POST" })
       ends_at: end.toISOString(),
     });
 
-    // 7) TODO: send SMS (Phase 3)
+    // 7) Send account created SMS (non-blocking)
+    try {
+      const { sendTemplateSMS } = await import("./sms.server");
+      await sendTemplateSMS("account_created", data.phone, {
+        shop_name: data.name,
+        owner: data.owner_name,
+        phone: data.phone,
+        password: data.password,
+        package: pkg?.name ?? "",
+        end_date: end.toLocaleDateString("bn-BD"),
+      }, { shopId: shop.id });
+    } catch (e) {
+      console.error("account_created SMS failed", e);
+    }
 
     return { shop, credentials: { email: data.email, password: data.password } };
   });
@@ -380,6 +393,28 @@ export const approveSubscriptionPayment = createServerFn({ method: "POST" })
       });
     }
 
+    // SMS: upgraded (if package changed) or renewed
+    try {
+      const { sendTemplateSMS } = await import("./sms.server");
+      const { data: pkgRow } = await supabaseAdmin
+        .from("packages").select("name").eq("id", pkgId!).maybeSingle();
+      const isUpgrade = pkgId && shop.package_id && pkgId !== shop.package_id;
+      const endStr = new Date(base).toLocaleDateString("bn-BD");
+      if (isUpgrade) {
+        await sendTemplateSMS("upgraded", shop.phone, {
+          shop_name: shop.name, owner: shop.owner_name,
+          package: pkgRow?.name ?? "", end_date: endStr, amount: pay.amount,
+        }, { shopId: shop.id });
+      } else {
+        await sendTemplateSMS("renewed", shop.phone, {
+          shop_name: shop.name, owner: shop.owner_name,
+          package: pkgRow?.name ?? "", end_date: endStr, amount: pay.amount,
+        }, { shopId: shop.id });
+      }
+    } catch (e) {
+      console.error("renewal SMS failed", e);
+    }
+
     return { ok: true };
   });
 
@@ -405,7 +440,50 @@ export const syncExpiredShops = createServerFn({ method: "POST" })
       .update({ status: "expired" })
       .lt("subscription_end", new Date().toISOString())
       .eq("status", "active")
-      .select("id");
+      .select("id, name, owner_name, phone");
     if (error) throw new Error(error.message);
+
+    // Send expired SMS for each — non-blocking failures
+    try {
+      const { sendTemplateSMS } = await import("./sms.server");
+      for (const s of data ?? []) {
+        await sendTemplateSMS("expired", s.phone, {
+          shop_name: s.name, owner: s.owner_name,
+        }, { shopId: s.id });
+      }
+    } catch (e) {
+      console.error("expired SMS batch failed", e);
+    }
     return { updated: data?.length ?? 0 };
   });
+
+// ---------- SMS Logs & Test ----------
+export const listSmsLogs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ limit: z.number().int().min(1).max(500).optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("sms_logs")
+      .select("*, shop:shops(name)")
+      .order("created_at", { ascending: false })
+      .limit(data.limit ?? 100);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const sendTestSms = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ phone: z.string().min(6), message: z.string().min(1).max(500) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { sendRawSMS } = await import("./sms.server");
+    const r = await sendRawSMS(data.phone, data.message);
+    return r;
+  });
+

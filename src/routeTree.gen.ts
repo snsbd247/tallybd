@@ -18,11 +18,13 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
+import { Route as AdminSmsLogsRouteImport } from './routes/admin.sms-logs'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
 import { Route as AdminSetupRouteImport } from './routes/admin.setup'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
 
 const RenewRoute = RenewRouteImport.update({
   id: '/renew',
@@ -69,6 +71,11 @@ const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
   path: '/subscriptions',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSmsLogsRoute = AdminSmsLogsRouteImport.update({
+  id: '/sms-logs',
+  path: '/sms-logs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminShopsRoute = AdminShopsRouteImport.update({
   id: '/shops',
   path: '/shops',
@@ -94,6 +101,12 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiPublicCronExpiryCheckRoute =
+  ApiPublicCronExpiryCheckRouteImport.update({
+    id: '/api/public/cron/expiry-check',
+    path: '/api/public/cron/expiry-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -106,10 +119,12 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
+  '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -120,10 +135,12 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
+  '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -137,10 +154,12 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
+  '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -155,10 +174,12 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/setup'
     | '/admin/shops'
+    | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/subscription'
     | '/admin/'
     | '/app/'
+    | '/api/public/cron/expiry-check'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -169,10 +190,12 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/setup'
     | '/admin/shops'
+    | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/subscription'
     | '/admin'
     | '/app'
+    | '/api/public/cron/expiry-check'
   id:
     | '__root__'
     | '/'
@@ -185,10 +208,12 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/setup'
     | '/admin/shops'
+    | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/subscription'
     | '/admin/'
     | '/app/'
+    | '/api/public/cron/expiry-check'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +222,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   RenewRoute: typeof RenewRoute
+  ApiPublicCronExpiryCheckRoute: typeof ApiPublicCronExpiryCheckRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -264,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubscriptionsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/sms-logs': {
+      id: '/admin/sms-logs'
+      path: '/sms-logs'
+      fullPath: '/admin/sms-logs'
+      preLoaderRoute: typeof AdminSmsLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/shops': {
       id: '/admin/shops'
       path: '/shops'
@@ -299,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/public/cron/expiry-check': {
+      id: '/api/public/cron/expiry-check'
+      path: '/api/public/cron/expiry-check'
+      fullPath: '/api/public/cron/expiry-check'
+      preLoaderRoute: typeof ApiPublicCronExpiryCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -308,6 +348,7 @@ interface AdminRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSetupRoute: typeof AdminSetupRoute
   AdminShopsRoute: typeof AdminShopsRoute
+  AdminSmsLogsRoute: typeof AdminSmsLogsRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -318,6 +359,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSetupRoute: AdminSetupRoute,
   AdminShopsRoute: AdminShopsRoute,
+  AdminSmsLogsRoute: AdminSmsLogsRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -342,6 +384,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   RenewRoute: RenewRoute,
+  ApiPublicCronExpiryCheckRoute: ApiPublicCronExpiryCheckRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

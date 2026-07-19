@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getGatewaySettings, saveBkashSettings, saveSmsSettings, saveSmsTemplate } from "@/lib/admin.functions";
+import { getGatewaySettings, saveBkashSettings, saveSmsSettings, saveSmsTemplate, sendTestSms } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { Send } from "lucide-react";
 
 export const Route = createFileRoute("/admin/settings")({ component: SettingsPage });
 
@@ -42,6 +43,7 @@ function SettingsPage() {
           {data && <SmsForm initial={data.sms} onSave={async (v) => {
             await smsFn({ data: v }); toast.success("সেভ হয়েছে"); qc.invalidateQueries({ queryKey: ["gateway-settings"] });
           }} />}
+          <TestSmsForm />
         </TabsContent>
         <TabsContent value="templates">
           <div className="space-y-4">
@@ -119,6 +121,32 @@ function TemplateCard({ tpl, onSave }: { tpl: any; onSave: (v: any) => Promise<v
       <Input className="mb-2" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
       <Textarea rows={2} value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} />
       <div className="mt-2 flex justify-end"><Button size="sm" type="submit">সেভ</Button></div>
+    </form>
+  );
+}
+
+function TestSmsForm() {
+  const testFn = useServerFn(sendTestSms);
+  const [phone, setPhone] = useState("");
+  const [msg, setMsg] = useState("Supershop টেস্ট SMS — কাজ করছে ✅");
+  const [busy, setBusy] = useState(false);
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        try {
+          const r: any = await testFn({ data: { phone, message: msg } });
+          if (r?.ok) toast.success("SMS পাঠানো হয়েছে"); else toast.error(r?.response ?? "ব্যর্থ");
+        } catch (err: any) { toast.error(err?.message ?? "ব্যর্থ"); }
+        setBusy(false);
+      }}
+      className="mt-4 max-w-xl space-y-3 rounded-xl border bg-card p-6"
+    >
+      <div className="font-semibold">টেস্ট SMS পাঠান</div>
+      <div><Label>ফোন নম্বর</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" required /></div>
+      <div><Label>ম্যাসেজ</Label><Textarea rows={3} value={msg} onChange={(e) => setMsg(e.target.value)} required /></div>
+      <Button type="submit" disabled={busy}><Send className="mr-2 h-4 w-4" />{busy ? "পাঠানো হচ্ছে..." : "পাঠান"}</Button>
     </form>
   );
 }
