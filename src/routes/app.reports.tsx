@@ -201,11 +201,9 @@ function CashBook({ method, title }: { method: "cash" | "bkash"; title: string }
           <div><Label>শুরুর তারিখ</Label><Input type="date" value={f.from} onChange={e => setF({ ...f, from: e.target.value })} /></div>
           <div><Label>শেষ তারিখ</Label><Input type="date" value={f.to} onChange={e => setF({ ...f, to: e.target.value })} /></div>
         </div>
-        <Button variant="outline" onClick={() => download(`${method}_book_${f.from}_${f.to}.csv`,
-          toCSV(["তারিখ", "ধরন", "উৎস", "পক্ষ", "রেফ", "নোট", "আসা", "যাওয়া", "ব্যালেন্স"],
-            entries.map((e: any) => [e.date, e.type === "in" ? "আসা" : "যাওয়া", e.source, e.party, e.ref, e.note, e.type === "in" ? e.amount : "", e.type === "out" ? e.amount : "", e.running])))}>
-          <Download className="mr-2 h-4 w-4" /> CSV
-        </Button>
+        <ExportButtons name={`${method}_book_${f.from}_${f.to}`} title={title}
+          headers={["তারিখ", "ধরন", "উৎস", "পক্ষ", "রেফ", "নোট", "আসা", "যাওয়া", "ব্যালেন্স"]}
+          rows={entries.map((e: any) => [e.date, e.type === "in" ? "আসা" : "যাওয়া", e.source, e.party, e.ref, e.note, e.type === "in" ? e.amount : "", e.type === "out" ? e.amount : "", e.running])} />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
