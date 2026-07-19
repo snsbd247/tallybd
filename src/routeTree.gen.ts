@@ -21,6 +21,7 @@ import { Route as AppSuppliersRouteImport } from './routes/app.suppliers'
 import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
 import { Route as AppStockRouteImport } from './routes/app.stock'
 import { Route as AppProductsRouteImport } from './routes/app.products'
+import { Route as AppCustomersRouteImport } from './routes/app.customers'
 import { Route as AppCategoriesRouteImport } from './routes/app.categories'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminSmsLogsRouteImport } from './routes/admin.sms-logs'
@@ -92,6 +93,11 @@ const AppStockRoute = AppStockRouteImport.update({
 const AppProductsRoute = AppProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCustomersRoute = AppCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCategoriesRoute = AppCategoriesRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/categories': typeof AppCategoriesRoute
+  '/app/customers': typeof AppCustomersRoute
   '/app/products': typeof AppProductsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/categories': typeof AppCategoriesRoute
+  '/app/customers': typeof AppCustomersRoute
   '/app/products': typeof AppProductsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
@@ -221,6 +229,7 @@ export interface FileRoutesById {
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/categories': typeof AppCategoriesRoute
+  '/app/customers': typeof AppCustomersRoute
   '/app/products': typeof AppProductsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
     | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/categories'
+    | '/app/customers'
     | '/app/products'
     | '/app/stock'
     | '/app/subscription'
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/categories'
+    | '/app/customers'
     | '/app/products'
     | '/app/stock'
     | '/app/subscription'
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
     | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/categories'
+    | '/app/customers'
     | '/app/products'
     | '/app/stock'
     | '/app/subscription'
@@ -406,6 +418,13 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/app/products'
       preLoaderRoute: typeof AppProductsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/customers': {
+      id: '/app/customers'
+      path: '/customers'
+      fullPath: '/app/customers'
+      preLoaderRoute: typeof AppCustomersRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/categories': {
@@ -521,6 +540,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
   AppCategoriesRoute: typeof AppCategoriesRoute
+  AppCustomersRoute: typeof AppCustomersRoute
   AppProductsRoute: typeof AppProductsRoute
   AppStockRoute: typeof AppStockRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
@@ -533,6 +553,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppCategoriesRoute: AppCategoriesRoute,
+  AppCustomersRoute: AppCustomersRoute,
   AppProductsRoute: AppProductsRoute,
   AppStockRoute: AppStockRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,
