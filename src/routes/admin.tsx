@@ -1,7 +1,6 @@
 import { createFileRoute, Outlet, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { AdminShell } from "@/components/admin-shell";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -28,9 +27,5 @@ function AdminLayout() {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">লোড হচ্ছে...</div>;
   }
 
-  return (
-    <AdminShell>
-      <Outlet />
-    </AdminShell>
-  );
+  return <Outlet />;
 }
