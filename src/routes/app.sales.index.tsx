@@ -41,9 +41,9 @@ function Page() {
           </thead>
           <tbody>
             {q.data?.map((s: any) => (
-              <tr key={s.id} className="border-t">
+              <tr key={s.id} className="border-t hover:bg-muted/40 cursor-pointer" onClick={() => nav({ to: "/app/sales/$saleId", params: { saleId: s.id } })}>
                 <td className="px-4 py-3">{new Date(s.sale_date).toLocaleDateString("bn-BD")}</td>
-                <td className="px-4 py-3 font-medium">{s.invoice_no ?? s.id.slice(0, 8)}</td>
+                <td className="px-4 py-3 font-medium text-primary underline-offset-2 hover:underline">{s.invoice_no ?? s.id.slice(0, 8)}</td>
                 <td className="px-4 py-3">{s.customer?.name ?? <span className="text-muted-foreground">Walk-in</span>}</td>
                 <td className="px-4 py-3"><Badge variant={typeVariant[s.sale_type]}>{typeLabel[s.sale_type]}</Badge></td>
                 <td className="px-4 py-3 text-right">৳{Number(s.total).toFixed(2)}</td>

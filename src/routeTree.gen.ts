@@ -35,6 +35,7 @@ import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AppSalesIndexRouteImport } from './routes/app.sales.index'
 import { Route as AppPurchasesIndexRouteImport } from './routes/app.purchases.index'
 import { Route as AppSalesNewRouteImport } from './routes/app.sales.new'
+import { Route as AppSalesSaleIdRouteImport } from './routes/app.sales.$saleId'
 import { Route as AppPurchasesNewRouteImport } from './routes/app.purchases.new'
 import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
 import { Route as ApiPublicBkashCallbackRouteImport } from './routes/api/public/bkash/callback'
@@ -169,6 +170,11 @@ const AppSalesNewRoute = AppSalesNewRouteImport.update({
   path: '/sales/new',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSalesSaleIdRoute = AppSalesSaleIdRouteImport.update({
+  id: '/sales/$saleId',
+  path: '/sales/$saleId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPurchasesNewRoute = AppPurchasesNewRouteImport.update({
   id: '/purchases/new',
   path: '/purchases/new',
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/sales/$saleId': typeof AppSalesSaleIdRoute
   '/app/sales/new': typeof AppSalesNewRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
   '/app/sales/': typeof AppSalesIndexRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/sales/$saleId': typeof AppSalesSaleIdRoute
   '/app/sales/new': typeof AppSalesNewRoute
   '/app/purchases': typeof AppPurchasesIndexRoute
   '/app/sales': typeof AppSalesIndexRoute
@@ -272,6 +280,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/sales/$saleId': typeof AppSalesSaleIdRoute
   '/app/sales/new': typeof AppSalesNewRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
   '/app/sales/': typeof AppSalesIndexRoute
@@ -305,6 +314,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/app/purchases/new'
+    | '/app/sales/$saleId'
     | '/app/sales/new'
     | '/app/purchases/'
     | '/app/sales/'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/app/purchases/new'
+    | '/app/sales/$saleId'
     | '/app/sales/new'
     | '/app/purchases'
     | '/app/sales'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/app/purchases/new'
+    | '/app/sales/$saleId'
     | '/app/sales/new'
     | '/app/purchases/'
     | '/app/sales/'
@@ -566,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSalesNewRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/sales/$saleId': {
+      id: '/app/sales/$saleId'
+      path: '/sales/$saleId'
+      fullPath: '/app/sales/$saleId'
+      preLoaderRoute: typeof AppSalesSaleIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/purchases/new': {
       id: '/app/purchases/new'
       path: '/purchases/new'
@@ -626,6 +645,7 @@ interface AppRouteChildren {
   AppUnitsRoute: typeof AppUnitsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppPurchasesNewRoute: typeof AppPurchasesNewRoute
+  AppSalesSaleIdRoute: typeof AppSalesSaleIdRoute
   AppSalesNewRoute: typeof AppSalesNewRoute
   AppPurchasesIndexRoute: typeof AppPurchasesIndexRoute
   AppSalesIndexRoute: typeof AppSalesIndexRoute
@@ -643,6 +663,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppUnitsRoute: AppUnitsRoute,
   AppIndexRoute: AppIndexRoute,
   AppPurchasesNewRoute: AppPurchasesNewRoute,
+  AppSalesSaleIdRoute: AppSalesSaleIdRoute,
   AppSalesNewRoute: AppSalesNewRoute,
   AppPurchasesIndexRoute: AppPurchasesIndexRoute,
   AppSalesIndexRoute: AppSalesIndexRoute,

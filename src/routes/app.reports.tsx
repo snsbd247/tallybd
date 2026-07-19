@@ -10,7 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
-import { Download, TrendingUp, TrendingDown, Wallet, Package } from "lucide-react";
+import { FileSpreadsheet, FileText, FileDown, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { downloadCSV, downloadExcel, downloadPDF } from "@/lib/export-utils";
 
 export const Route = createFileRoute("/app/reports")({ component: Page });
 
@@ -18,16 +19,23 @@ const fmt = (n: number) => `৳${Number(n || 0).toLocaleString("bn-BD", { maximu
 const today = () => new Date().toISOString().slice(0, 10);
 const monthStart = () => today().slice(0, 8) + "01";
 
-function toCSV(headers: string[], rows: (string | number)[][]) {
-  const esc = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  return [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
-}
-
-function download(name: string, csv: string) {
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = name; a.click();
-  URL.revokeObjectURL(url);
+function ExportButtons({ name, title, headers, rows, totals }: {
+  name: string; title: string; headers: string[]; rows: (string | number)[][]; totals?: (string | number)[];
+}) {
+  const all = totals ? [...rows, totals] : rows;
+  return (
+    <div className="flex gap-2">
+      <Button variant="outline" size="sm" onClick={() => downloadCSV(name, headers, all)}>
+        <FileDown className="mr-1 h-4 w-4" /> CSV
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => downloadExcel(name, headers, all)}>
+        <FileSpreadsheet className="mr-1 h-4 w-4" /> Excel
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => downloadPDF({ name, title, headers, rows, totalsRow: totals })}>
+        <FileText className="mr-1 h-4 w-4" /> PDF
+      </Button>
+    </div>
+  );
 }
 
 function Page() {
@@ -105,11 +113,10 @@ function SalesReport() {
     <div className="space-y-4 pt-4">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <DateRange from={f.from} to={f.to} gran={f.gran} onChange={setF} />
-        <Button variant="outline" onClick={() => download(`sales_${f.from}_${f.to}.csv`,
-          toCSV(["সময়", "ইনভয়েস", "মোট", "পরিশোধ", "বাকি", "নগদ", "বাকি বিক্রি", "কিস্তি"],
-            rows.map(r => [r.period, r.count, r.total, r.paid, r.due, r.cash, r.credit, r.installment])))}>
-          <Download className="mr-2 h-4 w-4" /> CSV
-        </Button>
+        <ExportButtons name={`sales_${f.from}_${f.to}`} title="বিক্রয় রিপোর্ট"
+          headers={["সময়", "ইনভয়েস #", "মোট বিক্রয়", "পরিশোধ", "বাকি", "নগদ", "বাকি বিক্রি", "কিস্তি"]}
+          rows={rows.map(r => [r.period, r.count, r.total, r.paid, r.due, r.cash, r.credit, r.installment])}
+          totals={t ? ["মোট", t.count, t.total, t.paid, t.due, t.cash, t.credit, t.installment] : undefined} />
       </div>
       <ReportTable
         loading={isLoading}
@@ -133,10 +140,10 @@ function PurchaseReport() {
     <div className="space-y-4 pt-4">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <DateRange from={f.from} to={f.to} gran={f.gran} onChange={setF} />
-        <Button variant="outline" onClick={() => download(`purchase_${f.from}_${f.to}.csv`,
-          toCSV(["সময়", "ইনভয়েস", "মোট", "পরিশোধ", "বাকি"], rows.map(r => [r.period, r.count, r.total, r.paid, r.due])))}>
-          <Download className="mr-2 h-4 w-4" /> CSV
-        </Button>
+        <ExportButtons name={`purchase_${f.from}_${f.to}`} title="ক্রয় রিপোর্ট"
+          headers={["সময়", "ইনভয়েস #", "মোট ক্রয়", "পরিশোধ", "বাকি"]}
+          rows={rows.map(r => [r.period, r.count, r.total, r.paid, r.due])}
+          totals={t ? ["মোট", t.count, t.total, t.paid, t.due] : undefined} />
       </div>
       <ReportTable
         loading={isLoading}
@@ -161,10 +168,10 @@ function ProfitReport() {
     <div className="space-y-4 pt-4">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <DateRange from={f.from} to={f.to} gran={f.gran} onChange={setF} />
-        <Button variant="outline" onClick={() => download(`profit_${f.from}_${f.to}.csv`,
-          toCSV(["সময়", "পরিমাণ", "বিক্রয়", "খরচ", "লাভ"], rows.map(r => [r.period, r.qty, r.revenue, r.cost, r.profit])))}>
-          <Download className="mr-2 h-4 w-4" /> CSV
-        </Button>
+        <ExportButtons name={`profit_${f.from}_${f.to}`} title="লাভ রিপোর্ট"
+          headers={["সময়", "পরিমাণ", "বিক্রয়", "খরচ", "লাভ"]}
+          rows={rows.map(r => [r.period, r.qty, r.revenue, r.cost, r.profit])}
+          totals={t ? ["মোট", t.qty, t.revenue, t.cost, t.profit] : undefined} />
       </div>
       <ReportTable
         loading={isLoading}
@@ -194,11 +201,9 @@ function CashBook({ method, title }: { method: "cash" | "bkash"; title: string }
           <div><Label>শুরুর তারিখ</Label><Input type="date" value={f.from} onChange={e => setF({ ...f, from: e.target.value })} /></div>
           <div><Label>শেষ তারিখ</Label><Input type="date" value={f.to} onChange={e => setF({ ...f, to: e.target.value })} /></div>
         </div>
-        <Button variant="outline" onClick={() => download(`${method}_book_${f.from}_${f.to}.csv`,
-          toCSV(["তারিখ", "ধরন", "উৎস", "পক্ষ", "রেফ", "নোট", "আসা", "যাওয়া", "ব্যালেন্স"],
-            entries.map((e: any) => [e.date, e.type === "in" ? "আসা" : "যাওয়া", e.source, e.party, e.ref, e.note, e.type === "in" ? e.amount : "", e.type === "out" ? e.amount : "", e.running])))}>
-          <Download className="mr-2 h-4 w-4" /> CSV
-        </Button>
+        <ExportButtons name={`${method}_book_${f.from}_${f.to}`} title={title}
+          headers={["তারিখ", "ধরন", "উৎস", "পক্ষ", "রেফ", "নোট", "আসা", "যাওয়া", "ব্যালেন্স"]}
+          rows={entries.map((e: any) => [e.date, e.type === "in" ? "আসা" : "যাওয়া", e.source, e.party, e.ref, e.note, e.type === "in" ? e.amount : "", e.type === "out" ? e.amount : "", e.running])} />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
