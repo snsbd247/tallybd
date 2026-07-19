@@ -94,3 +94,71 @@ export const submitRenewalPayment = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+const initiateSchema = z.object({
+  package_id: z.string().uuid(),
+  billing_cycle: z.enum(["monthly", "yearly"]),
+});
+
+export const initiateBkashPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => initiateSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { shopId } = await getUserShopId(context);
+    if (!shopId) throw new Error("দোকান পাওয়া যায়নি");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: shop } = await supabaseAdmin
+      .from("shops").select("*").eq("id", shopId).single();
+    if (!shop) throw new Error("দোকান পাওয়া যায়নি");
+
+    const { data: pkg } = await supabaseAdmin
+      .from("packages").select("*").eq("id", data.package_id).single();
+    if (!pkg) throw new Error("প্যাকেজ পাওয়া যায়নি");
+    const amount = data.billing_cycle === "monthly" ? pkg.price_monthly : pkg.price_yearly;
+
+    // Create pending payment row first (id = merchantInvoiceNumber)
+    const { data: pay, error: payErr } = await supabaseAdmin
+      .from("subscription_payments")
+      .insert({
+        shop_id: shopId,
+        amount,
+        payment_method: "bkash",
+        status: "pending",
+        raw_response: { auto: true, package_id: data.package_id, billing_cycle: data.billing_cycle },
+      })
+      .select("id")
+      .single();
+    if (payErr || !pay) throw new Error(payErr?.message ?? "Payment row create failed");
+
+    const { createBkashPayment } = await import("./bkash.server");
+    const origin = new URL(new Request(context.request?.url ?? "http://localhost").url).origin;
+    // Prefer explicit request headers; fall back to origin from client if unavailable
+    const req: Request | undefined = (context as any).request;
+    const hostHeader = req?.headers?.get?.("origin") ?? req?.headers?.get?.("host");
+    const base = hostHeader?.startsWith("http")
+      ? hostHeader
+      : hostHeader ? `https://${hostHeader}` : origin;
+
+    const callbackURL = `${base}/api/public/bkash/callback?pid=${pay.id}`;
+
+    try {
+      const result = await createBkashPayment({
+        amount,
+        invoiceNumber: pay.id.replace(/-/g, "").slice(0, 20),
+        callbackURL,
+        payerReference: shop.phone ?? shop.owner_name ?? "shop",
+      });
+      await supabaseAdmin.from("subscription_payments").update({
+        bkash_payment_id: result.paymentID,
+        raw_response: { ...(pay as any).raw_response, ...result.raw, create: result.raw },
+      }).eq("id", pay.id);
+      return { url: result.bkashURL, paymentID: result.paymentID };
+    } catch (e: any) {
+      await supabaseAdmin.from("subscription_payments").update({
+        status: "failed",
+        raw_response: { error: e?.message ?? String(e) },
+      }).eq("id", pay.id);
+      throw e;
+    }
+  });
