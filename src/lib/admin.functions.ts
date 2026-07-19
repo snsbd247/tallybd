@@ -440,7 +440,50 @@ export const syncExpiredShops = createServerFn({ method: "POST" })
       .update({ status: "expired" })
       .lt("subscription_end", new Date().toISOString())
       .eq("status", "active")
-      .select("id");
+      .select("id, name, owner_name, phone");
     if (error) throw new Error(error.message);
+
+    // Send expired SMS for each — non-blocking failures
+    try {
+      const { sendTemplateSMS } = await import("./sms.server");
+      for (const s of data ?? []) {
+        await sendTemplateSMS("expired", s.phone, {
+          shop_name: s.name, owner: s.owner_name,
+        }, { shopId: s.id });
+      }
+    } catch (e) {
+      console.error("expired SMS batch failed", e);
+    }
     return { updated: data?.length ?? 0 };
   });
+
+// ---------- SMS Logs & Test ----------
+export const listSmsLogs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ limit: z.number().int().min(1).max(500).optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("sms_logs")
+      .select("*, shop:shops(name)")
+      .order("created_at", { ascending: false })
+      .limit(data.limit ?? 100);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const sendTestSms = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ phone: z.string().min(6), message: z.string().min(1).max(500) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { sendRawSMS } = await import("./sms.server");
+    const r = await sendRawSMS(data.phone, data.message);
+    return r;
+  });
+
