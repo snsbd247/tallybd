@@ -6,7 +6,7 @@ import { getMyShop } from "@/lib/shop.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Store, LogOut } from "lucide-react";
+import { LayoutDashboard, Store, LogOut, CreditCard } from "lucide-react";
 
 export const Route = createFileRoute("/app")({ ssr: false, component: AppLayout });
 
