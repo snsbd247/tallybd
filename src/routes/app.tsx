@@ -35,9 +35,9 @@ function AppLayout() {
   const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/login" }); };
   const loc = useLocation();
 
-  const nav = [
+  const nav: { to: string; label: string; icon: any; exact?: boolean }[] = [
     { to: "/app", label: "ড্যাশবোর্ড", icon: LayoutDashboard, exact: true },
-  ] as const;
+  ];
 
   return (
     <div className="flex min-h-screen">
