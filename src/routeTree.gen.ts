@@ -18,6 +18,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
+import { Route as AdminSmsLogsRouteImport } from './routes/admin.sms-logs'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
 import { Route as AdminSetupRouteImport } from './routes/admin.setup'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -69,6 +70,11 @@ const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
   path: '/subscriptions',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSmsLogsRoute = AdminSmsLogsRouteImport.update({
+  id: '/sms-logs',
+  path: '/sms-logs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminShopsRoute = AdminShopsRouteImport.update({
   id: '/shops',
   path: '/shops',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
+  '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
+  '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/admin': typeof AdminIndexRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
+  '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/setup'
     | '/admin/shops'
+    | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/subscription'
     | '/admin/'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/setup'
     | '/admin/shops'
+    | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/subscription'
     | '/admin'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/setup'
     | '/admin/shops'
+    | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/subscription'
     | '/admin/'
@@ -264,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubscriptionsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/sms-logs': {
+      id: '/admin/sms-logs'
+      path: '/sms-logs'
+      fullPath: '/admin/sms-logs'
+      preLoaderRoute: typeof AdminSmsLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/shops': {
       id: '/admin/shops'
       path: '/shops'
@@ -308,6 +327,7 @@ interface AdminRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSetupRoute: typeof AdminSetupRoute
   AdminShopsRoute: typeof AdminShopsRoute
+  AdminSmsLogsRoute: typeof AdminSmsLogsRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -318,6 +338,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSetupRoute: AdminSetupRoute,
   AdminShopsRoute: AdminShopsRoute,
+  AdminSmsLogsRoute: AdminSmsLogsRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

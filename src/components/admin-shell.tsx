@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Store, Package, Settings, LogOut, ShieldCheck, CreditCard } from "lucide-react";
+import { LayoutDashboard, Store, Package, Settings, LogOut, ShieldCheck, CreditCard, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { ReactNode } from "react";
@@ -9,6 +9,7 @@ const nav: { to: string; label: string; icon: any; exact?: boolean }[] = [
   { to: "/admin/shops", label: "দোকান সমূহ", icon: Store },
   { to: "/admin/subscriptions", label: "পেমেন্ট", icon: CreditCard },
   { to: "/admin/packages", label: "প্যাকেজ", icon: Package },
+  { to: "/admin/sms-logs", label: "SMS লগ", icon: MessageSquare },
   { to: "/admin/settings", label: "সেটিংস", icon: Settings },
 ];
 
