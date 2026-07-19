@@ -17,17 +17,17 @@ function Page() {
   const typeVariant: Record<string, any> = { cash: "default", due: "secondary", installment: "outline" };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">বিক্রয়</h1>
+    <div className="p-4 sm:p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold sm:text-2xl">বিক্রয়</h1>
           <p className="text-sm text-muted-foreground">সাম্প্রতিক ইনভয়েস</p>
         </div>
-        <Button onClick={() => nav({ to: "/app/sales/new" })}><Plus className="mr-2 h-4 w-4" /> নতুন বিক্রয়</Button>
+        <Button className="shrink-0" onClick={() => nav({ to: "/app/sales/new" })}><Plus className="mr-2 h-4 w-4" /> নতুন বিক্রয়</Button>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-xl border bg-card">
-        <table className="w-full text-sm">
+      <div className="mt-5 overflow-x-auto rounded-xl border bg-card">
+        <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="px-4 py-3">তারিখ</th>

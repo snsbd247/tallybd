@@ -43,9 +43,9 @@ function Page() {
   const { data: snap } = useQuery({ queryKey: ["report-snap"], queryFn: () => snapFn() });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">রিপোর্ট</h1>
+    <div className="space-y-5 p-4 sm:p-6">
+      <div className="min-w-0">
+        <h1 className="truncate text-xl font-bold sm:text-2xl">রিপোর্ট</h1>
         <p className="text-sm text-muted-foreground">বিক্রয়, ক্রয়, ক্যাশ বই, লাভ</p>
       </div>
 
@@ -57,7 +57,7 @@ function Page() {
       </div>
 
       <Tabs defaultValue="sales">
-        <TabsList>
+        <TabsList className="h-auto max-w-full justify-start overflow-x-auto p-1">
           <TabsTrigger value="sales">বিক্রয়</TabsTrigger>
           <TabsTrigger value="purchase">ক্রয়</TabsTrigger>
           <TabsTrigger value="profit">লাভ</TabsTrigger>
@@ -84,12 +84,12 @@ function Snap({ icon, label, value }: { icon: React.ReactNode; label: string; va
 
 function DateRange({ from, to, gran, onChange }: { from: string; to: string; gran: string; onChange: (v: { from: string; to: string; gran: string }) => void }) {
   return (
-    <div className="flex flex-wrap items-end gap-3">
+    <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-end">
       <div><Label>শুরুর তারিখ</Label><Input type="date" value={from} onChange={e => onChange({ from: e.target.value, to, gran })} /></div>
       <div><Label>শেষ তারিখ</Label><Input type="date" value={to} onChange={e => onChange({ from, to: e.target.value, gran })} /></div>
       <div><Label>ভিউ</Label>
         <Select value={gran} onValueChange={v => onChange({ from, to, gran: v })}>
-          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-32"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="day">দৈনিক</SelectItem>
             <SelectItem value="month">মাসিক</SelectItem>
@@ -197,7 +197,7 @@ function CashBook({ method, title }: { method: "cash" | "bkash"; title: string }
   return (
     <div className="space-y-4 pt-4">
       <div className="flex items-end justify-between gap-3 flex-wrap">
-        <div className="flex items-end gap-3">
+        <div className="grid gap-3 sm:flex sm:items-end">
           <div><Label>শুরুর তারিখ</Label><Input type="date" value={f.from} onChange={e => setF({ ...f, from: e.target.value })} /></div>
           <div><Label>শেষ তারিখ</Label><Input type="date" value={f.to} onChange={e => setF({ ...f, to: e.target.value })} /></div>
         </div>
@@ -213,7 +213,7 @@ function CashBook({ method, title }: { method: "cash" | "bkash"; title: string }
       </div>
 
       <div className="rounded-lg border overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-muted/50 text-left"><tr>
             <th className="p-2">তারিখ</th><th className="p-2">উৎস</th><th className="p-2">পক্ষ</th>
             <th className="p-2">রেফ</th><th className="p-2 text-right">আসা</th>
@@ -243,7 +243,7 @@ function CashBook({ method, title }: { method: "cash" | "bkash"; title: string }
 function ReportTable({ loading, headers, rows, totals }: { loading: boolean; headers: string[]; rows: any[][]; totals?: any[] | null | false }) {
   return (
     <div className="rounded-lg border overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full min-w-[760px] text-sm">
         <thead className="bg-muted/50 text-left"><tr>{headers.map((h, i) => <th key={i} className={`p-3 ${i >= 2 ? "text-right" : ""}`}>{h}</th>)}</tr></thead>
         <tbody>
           {loading ? <tr><td colSpan={headers.length} className="p-6 text-center text-muted-foreground">লোড হচ্ছে...</td></tr> :
