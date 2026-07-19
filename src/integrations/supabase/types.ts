@@ -242,6 +242,130 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_items: {
+        Row: {
+          created_at: string
+          id: string
+          line_total: number
+          product_id: string
+          purchase_id: string
+          quantity: number
+          shop_id: string
+          unit_cost: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          line_total: number
+          product_id: string
+          purchase_id: string
+          quantity: number
+          shop_id: string
+          unit_cost: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          line_total?: number
+          product_id?: string
+          purchase_id?: string
+          quantity?: number
+          shop_id?: string
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_items_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_items_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchases: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          discount: number
+          due: number
+          id: string
+          invoice_no: string | null
+          note: string | null
+          paid: number
+          payment_method: string
+          purchase_date: string
+          shop_id: string
+          subtotal: number
+          supplier_id: string | null
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          discount?: number
+          due?: number
+          id?: string
+          invoice_no?: string | null
+          note?: string | null
+          paid?: number
+          payment_method?: string
+          purchase_date?: string
+          shop_id: string
+          subtotal?: number
+          supplier_id?: string | null
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          discount?: number
+          due?: number
+          id?: string
+          invoice_no?: string | null
+          note?: string | null
+          paid?: number
+          payment_method?: string
+          purchase_date?: string
+          shop_id?: string
+          subtotal?: number
+          supplier_id?: string | null
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shops: {
         Row: {
           address: string | null
@@ -582,6 +706,120 @@ export type Database = {
           },
         ]
       }
+      supplier_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          payment_date: string
+          payment_method: string
+          purchase_id: string | null
+          reference: string | null
+          shop_id: string
+          supplier_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          payment_date?: string
+          payment_method?: string
+          purchase_id?: string | null
+          reference?: string | null
+          shop_id: string
+          supplier_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          payment_date?: string
+          payment_method?: string
+          purchase_id?: string | null
+          reference?: string | null
+          shop_id?: string
+          supplier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_payments_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_payments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_payments_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          created_at: string
+          current_balance: number
+          id: string
+          is_active: boolean
+          name: string
+          note: string | null
+          opening_balance: number
+          phone: string | null
+          shop_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          current_balance?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          note?: string | null
+          opening_balance?: number
+          phone?: string | null
+          shop_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          current_balance?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          note?: string | null
+          opening_balance?: number
+          phone?: string | null
+          shop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       units: {
         Row: {
           created_at: string
@@ -667,6 +905,20 @@ export type Database = {
         }
         Returns: string
       }
+      create_purchase: {
+        Args: {
+          _discount: number
+          _invoice_no: string
+          _items: Json
+          _note: string
+          _paid: number
+          _payment_method: string
+          _purchase_date: string
+          _shop_id: string
+          _supplier_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -679,6 +931,18 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      pay_supplier: {
+        Args: {
+          _amount: number
+          _note: string
+          _payment_date: string
+          _payment_method: string
+          _reference: string
+          _shop_id: string
+          _supplier_id: string
+        }
+        Returns: string
+      }
       user_shop_ids: { Args: { _user_id: string }; Returns: string[] }
     }
     Enums: {

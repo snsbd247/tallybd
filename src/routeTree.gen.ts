@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppUnitsRouteImport } from './routes/app.units'
+import { Route as AppSuppliersRouteImport } from './routes/app.suppliers'
 import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
 import { Route as AppStockRouteImport } from './routes/app.stock'
 import { Route as AppProductsRouteImport } from './routes/app.products'
@@ -28,6 +29,8 @@ import { Route as AdminSetupRouteImport } from './routes/admin.setup'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AppPurchasesIndexRouteImport } from './routes/app.purchases.index'
+import { Route as AppPurchasesNewRouteImport } from './routes/app.purchases.new'
 import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
 import { Route as ApiPublicBkashCallbackRouteImport } from './routes/api/public/bkash/callback'
 
@@ -69,6 +72,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AppUnitsRoute = AppUnitsRouteImport.update({
   id: '/units',
   path: '/units',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSuppliersRoute = AppSuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
@@ -126,6 +134,16 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppPurchasesIndexRoute = AppPurchasesIndexRouteImport.update({
+  id: '/purchases/',
+  path: '/purchases/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPurchasesNewRoute = AppPurchasesNewRouteImport.update({
+  id: '/purchases/new',
+  path: '/purchases/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const ApiPublicCronExpiryCheckRoute =
   ApiPublicCronExpiryCheckRouteImport.update({
     id: '/api/public/cron/expiry-check',
@@ -155,9 +173,12 @@ export interface FileRoutesByFullPath {
   '/app/products': typeof AppProductsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
+  '/app/suppliers': typeof AppSuppliersRoute
   '/app/units': typeof AppUnitsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/purchases/': typeof AppPurchasesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -176,9 +197,12 @@ export interface FileRoutesByTo {
   '/app/products': typeof AppProductsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
+  '/app/suppliers': typeof AppSuppliersRoute
   '/app/units': typeof AppUnitsRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/purchases': typeof AppPurchasesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -200,9 +224,12 @@ export interface FileRoutesById {
   '/app/products': typeof AppProductsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
+  '/app/suppliers': typeof AppSuppliersRoute
   '/app/units': typeof AppUnitsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/purchases/': typeof AppPurchasesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -225,9 +252,12 @@ export interface FileRouteTypes {
     | '/app/products'
     | '/app/stock'
     | '/app/subscription'
+    | '/app/suppliers'
     | '/app/units'
     | '/admin/'
     | '/app/'
+    | '/app/purchases/new'
+    | '/app/purchases/'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesByTo: FileRoutesByTo
@@ -246,9 +276,12 @@ export interface FileRouteTypes {
     | '/app/products'
     | '/app/stock'
     | '/app/subscription'
+    | '/app/suppliers'
     | '/app/units'
     | '/admin'
     | '/app'
+    | '/app/purchases/new'
+    | '/app/purchases'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   id:
@@ -269,9 +302,12 @@ export interface FileRouteTypes {
     | '/app/products'
     | '/app/stock'
     | '/app/subscription'
+    | '/app/suppliers'
     | '/app/units'
     | '/admin/'
     | '/app/'
+    | '/app/purchases/new'
+    | '/app/purchases/'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesById: FileRoutesById
@@ -342,6 +378,13 @@ declare module '@tanstack/react-router' {
       path: '/units'
       fullPath: '/app/units'
       preLoaderRoute: typeof AppUnitsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/suppliers': {
+      id: '/app/suppliers'
+      path: '/suppliers'
+      fullPath: '/app/suppliers'
+      preLoaderRoute: typeof AppSuppliersRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/subscription': {
@@ -421,6 +464,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/purchases/': {
+      id: '/app/purchases/'
+      path: '/purchases'
+      fullPath: '/app/purchases/'
+      preLoaderRoute: typeof AppPurchasesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/purchases/new': {
+      id: '/app/purchases/new'
+      path: '/purchases/new'
+      fullPath: '/app/purchases/new'
+      preLoaderRoute: typeof AppPurchasesNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/public/cron/expiry-check': {
       id: '/api/public/cron/expiry-check'
       path: '/api/public/cron/expiry-check'
@@ -467,8 +524,11 @@ interface AppRouteChildren {
   AppProductsRoute: typeof AppProductsRoute
   AppStockRoute: typeof AppStockRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
+  AppSuppliersRoute: typeof AppSuppliersRoute
   AppUnitsRoute: typeof AppUnitsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppPurchasesNewRoute: typeof AppPurchasesNewRoute
+  AppPurchasesIndexRoute: typeof AppPurchasesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -476,8 +536,11 @@ const AppRouteChildren: AppRouteChildren = {
   AppProductsRoute: AppProductsRoute,
   AppStockRoute: AppStockRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,
+  AppSuppliersRoute: AppSuppliersRoute,
   AppUnitsRoute: AppUnitsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppPurchasesNewRoute: AppPurchasesNewRoute,
+  AppPurchasesIndexRoute: AppPurchasesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
