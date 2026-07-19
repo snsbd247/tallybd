@@ -42,6 +42,7 @@ function SettingsPage() {
           {data && <SmsForm initial={data.sms} onSave={async (v) => {
             await smsFn({ data: v }); toast.success("সেভ হয়েছে"); qc.invalidateQueries({ queryKey: ["gateway-settings"] });
           }} />}
+          <TestSmsForm />
         </TabsContent>
         <TabsContent value="templates">
           <div className="space-y-4">
