@@ -133,13 +133,11 @@ export const initiateBkashPayment = createServerFn({ method: "POST" })
     if (payErr || !pay) throw new Error(payErr?.message ?? "Payment row create failed");
 
     const { createBkashPayment } = await import("./bkash.server");
-    const origin = new URL(new Request(context.request?.url ?? "http://localhost").url).origin;
-    // Prefer explicit request headers; fall back to origin from client if unavailable
-    const req: Request | undefined = (context as any).request;
-    const hostHeader = req?.headers?.get?.("origin") ?? req?.headers?.get?.("host");
-    const base = hostHeader?.startsWith("http")
-      ? hostHeader
-      : hostHeader ? `https://${hostHeader}` : origin;
+    const req = getRequest();
+    const origin = req.headers.get("origin");
+    const host = req.headers.get("host");
+    const proto = req.headers.get("x-forwarded-proto") ?? "https";
+    const base = origin ?? (host ? `${proto}://${host}` : new URL(req.url).origin);
 
     const callbackURL = `${base}/api/public/bkash/callback?pid=${pay.id}`;
 
