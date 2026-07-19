@@ -1,25 +1,30 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function getUserShopId(context: { supabase: any; userId: string }) {
+  const { data } = await context.supabase
+    .from("user_roles")
+    .select("shop_id, role")
+    .eq("user_id", context.userId)
+    .not("shop_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+  return { shopId: data?.shop_id as string | null, role: data?.role as string | null };
+}
 
 export const getMyShop = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: roleRow } = await context.supabase
-      .from("user_roles")
-      .select("shop_id, role")
-      .eq("user_id", context.userId)
-      .not("shop_id", "is", null)
-      .limit(1)
-      .maybeSingle();
-    if (!roleRow?.shop_id) return { shop: null, role: null };
+    const { shopId, role } = await getUserShopId(context);
+    if (!shopId) return { shop: null, role: null };
 
     const { data: shop } = await context.supabase
       .from("shops")
       .select("*, package:packages(*)")
-      .eq("id", roleRow.shop_id)
+      .eq("id", shopId)
       .single();
 
-    // Auto-check expiry
     if (shop && shop.subscription_end && new Date(shop.subscription_end) < new Date()
         && shop.status === "active") {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -27,5 +32,65 @@ export const getMyShop = createServerFn({ method: "GET" })
       shop.status = "expired";
     }
 
-    return { shop, role: roleRow.role };
+    return { shop, role };
+  });
+
+export const listMyPayments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { shopId } = await getUserShopId(context);
+    if (!shopId) return [];
+    const { data } = await context.supabase
+      .from("subscription_payments")
+      .select("*")
+      .eq("shop_id", shopId)
+      .order("created_at", { ascending: false });
+    return data ?? [];
+  });
+
+export const listMySubscriptions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { shopId } = await getUserShopId(context);
+    if (!shopId) return [];
+    const { data } = await context.supabase
+      .from("subscriptions")
+      .select("*, package:packages(name)")
+      .eq("shop_id", shopId)
+      .order("created_at", { ascending: false });
+    return data ?? [];
+  });
+
+const renewalSchema = z.object({
+  package_id: z.string().uuid(),
+  billing_cycle: z.enum(["monthly", "yearly"]),
+  transaction_id: z.string().min(4),
+  bkash_number: z.string().optional(),
+});
+
+export const submitRenewalPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => renewalSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { shopId } = await getUserShopId(context);
+    if (!shopId) throw new Error("দোকান পাওয়া যায়নি");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: pkg } = await supabaseAdmin
+      .from("packages").select("*").eq("id", data.package_id).single();
+    if (!pkg) throw new Error("প্যাকেজ পাওয়া যায়নি");
+
+    const amount = data.billing_cycle === "monthly" ? pkg.price_monthly : pkg.price_yearly;
+
+    const { error } = await supabaseAdmin.from("subscription_payments").insert({
+      shop_id: shopId,
+      amount,
+      payment_method: "bkash",
+      transaction_id: data.transaction_id,
+      bkash_payment_id: data.bkash_number ?? null,
+      status: "pending",
+      raw_response: { manual: true, package_id: data.package_id, billing_cycle: data.billing_cycle },
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
