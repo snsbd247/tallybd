@@ -20,6 +20,7 @@ import { Route as AppUnitsRouteImport } from './routes/app.units'
 import { Route as AppSuppliersRouteImport } from './routes/app.suppliers'
 import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
 import { Route as AppStockRouteImport } from './routes/app.stock'
+import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppProductsRouteImport } from './routes/app.products'
 import { Route as AppInstallmentsRouteImport } from './routes/app.installments'
 import { Route as AppCustomersRouteImport } from './routes/app.customers'
@@ -91,6 +92,11 @@ const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
 const AppStockRoute = AppStockRouteImport.update({
   id: '/stock',
   path: '/stock',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProductsRoute = AppProductsRouteImport.update({
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/app/customers': typeof AppCustomersRoute
   '/app/installments': typeof AppInstallmentsRoute
   '/app/products': typeof AppProductsRoute
+  '/app/reports': typeof AppReportsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/app/suppliers': typeof AppSuppliersRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/app/customers': typeof AppCustomersRoute
   '/app/installments': typeof AppInstallmentsRoute
   '/app/products': typeof AppProductsRoute
+  '/app/reports': typeof AppReportsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/app/suppliers': typeof AppSuppliersRoute
@@ -256,6 +264,7 @@ export interface FileRoutesById {
   '/app/customers': typeof AppCustomersRoute
   '/app/installments': typeof AppInstallmentsRoute
   '/app/products': typeof AppProductsRoute
+  '/app/reports': typeof AppReportsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
   '/app/suppliers': typeof AppSuppliersRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
     | '/app/customers'
     | '/app/installments'
     | '/app/products'
+    | '/app/reports'
     | '/app/stock'
     | '/app/subscription'
     | '/app/suppliers'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/app/customers'
     | '/app/installments'
     | '/app/products'
+    | '/app/reports'
     | '/app/stock'
     | '/app/subscription'
     | '/app/suppliers'
@@ -346,6 +357,7 @@ export interface FileRouteTypes {
     | '/app/customers'
     | '/app/installments'
     | '/app/products'
+    | '/app/reports'
     | '/app/stock'
     | '/app/subscription'
     | '/app/suppliers'
@@ -447,6 +459,13 @@ declare module '@tanstack/react-router' {
       path: '/stock'
       fullPath: '/app/stock'
       preLoaderRoute: typeof AppStockRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reports': {
+      id: '/app/reports'
+      path: '/reports'
+      fullPath: '/app/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/products': {
@@ -600,6 +619,7 @@ interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
   AppInstallmentsRoute: typeof AppInstallmentsRoute
   AppProductsRoute: typeof AppProductsRoute
+  AppReportsRoute: typeof AppReportsRoute
   AppStockRoute: typeof AppStockRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
   AppSuppliersRoute: typeof AppSuppliersRoute
@@ -616,6 +636,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
   AppInstallmentsRoute: AppInstallmentsRoute,
   AppProductsRoute: AppProductsRoute,
+  AppReportsRoute: AppReportsRoute,
   AppStockRoute: AppStockRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,
   AppSuppliersRoute: AppSuppliersRoute,
