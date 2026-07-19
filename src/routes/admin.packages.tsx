@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listPackages, savePackage, deletePackage } from "@/lib/admin.functions";
+import { AdminShell } from "@/components/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,20 +57,21 @@ function PackagesPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">প্যাকেজ ম্যানেজমেন্ট</h1>
+    <AdminShell>
+      <div className="p-4 sm:p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold sm:text-2xl">প্যাকেজ ম্যানেজমেন্ট</h1>
           <p className="text-sm text-muted-foreground">সাবস্ক্রিপশন প্যাকেজ তৈরি ও ব্যবস্থাপনা</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button onClick={openNew}><Plus className="mr-2 h-4 w-4" /> নতুন প্যাকেজ</Button></DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogTrigger asChild><Button className="shrink-0" onClick={openNew}><Plus className="mr-2 h-4 w-4" /> নতুন প্যাকেজ</Button></DialogTrigger>
+          <DialogContent className="max-h-[92dvh] max-w-lg overflow-y-auto">
             <DialogHeader><DialogTitle>{form.id ? "প্যাকেজ এডিট" : "নতুন প্যাকেজ"}</DialogTitle></DialogHeader>
             <form onSubmit={onSave} className="space-y-3">
               <div><Label>নাম</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
               <div><Label>বিবরণ</Label><Textarea value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div><Label>মাসিক মূল্য (৳)</Label><Input type="number" value={form.price_monthly} onChange={(e) => setForm({ ...form, price_monthly: +e.target.value })} /></div>
                 <div><Label>বাৎসরিক মূল্য (৳)</Label><Input type="number" value={form.price_yearly} onChange={(e) => setForm({ ...form, price_yearly: +e.target.value })} /></div>
                 <div><Label>ম্যাক্স প্রোডাক্ট</Label><Input type="number" value={form.max_products} onChange={(e) => setForm({ ...form, max_products: +e.target.value })} /></div>
@@ -107,6 +109,7 @@ function PackagesPage() {
           </div>
         ))}
       </div>
-    </div>
+      </div>
+    </AdminShell>
   );
 }
