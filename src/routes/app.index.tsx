@@ -23,7 +23,7 @@ function ShopDashboard() {
   const { data } = useQuery({ queryKey: ["my-shop"], queryFn: () => shopFn() });
   const snapQ = useQuery({ queryKey: ["report-snap"], queryFn: () => snapFn() });
   const recentSalesQ = useQuery({ queryKey: ["recent-sales"], queryFn: () => salesFn({ data: {} }) });
-  const overdueQ = useQuery({ queryKey: ["overdue-inst"], queryFn: () => instFn({ data: { filter: "overdue" } }) });
+  const overdueQ = useQuery({ queryKey: ["overdue-inst"], queryFn: () => instFn({ data: { status: "overdue" } }) });
 
   const shop = data?.shop;
   const end = shop?.subscription_end ? new Date(shop.subscription_end) : null;
