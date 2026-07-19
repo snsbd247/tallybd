@@ -32,6 +32,7 @@ import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AppSalesIndexRouteImport } from './routes/app.sales.index'
 import { Route as AppPurchasesIndexRouteImport } from './routes/app.purchases.index'
+import { Route as AppSalesNewRouteImport } from './routes/app.sales.new'
 import { Route as AppPurchasesNewRouteImport } from './routes/app.purchases.new'
 import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
 import { Route as ApiPublicBkashCallbackRouteImport } from './routes/api/public/bkash/callback'
@@ -151,6 +152,11 @@ const AppPurchasesIndexRoute = AppPurchasesIndexRouteImport.update({
   path: '/purchases/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSalesNewRoute = AppSalesNewRouteImport.update({
+  id: '/sales/new',
+  path: '/sales/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPurchasesNewRoute = AppPurchasesNewRouteImport.update({
   id: '/purchases/new',
   path: '/purchases/new',
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/sales/new': typeof AppSalesNewRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
   '/app/sales/': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
@@ -217,6 +224,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/sales/new': typeof AppSalesNewRoute
   '/app/purchases': typeof AppPurchasesIndexRoute
   '/app/sales': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/sales/new': typeof AppSalesNewRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
   '/app/sales/': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/app/purchases/new'
+    | '/app/sales/new'
     | '/app/purchases/'
     | '/app/sales/'
     | '/api/public/bkash/callback'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/app/purchases/new'
+    | '/app/sales/new'
     | '/app/purchases'
     | '/app/sales'
     | '/api/public/bkash/callback'
@@ -330,6 +341,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/app/purchases/new'
+    | '/app/sales/new'
     | '/app/purchases/'
     | '/app/sales/'
     | '/api/public/bkash/callback'
@@ -509,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPurchasesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/sales/new': {
+      id: '/app/sales/new'
+      path: '/sales/new'
+      fullPath: '/app/sales/new'
+      preLoaderRoute: typeof AppSalesNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/purchases/new': {
       id: '/app/purchases/new'
       path: '/purchases/new'
@@ -567,6 +586,7 @@ interface AppRouteChildren {
   AppUnitsRoute: typeof AppUnitsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppPurchasesNewRoute: typeof AppPurchasesNewRoute
+  AppSalesNewRoute: typeof AppSalesNewRoute
   AppPurchasesIndexRoute: typeof AppPurchasesIndexRoute
   AppSalesIndexRoute: typeof AppSalesIndexRoute
 }
@@ -581,6 +601,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppUnitsRoute: AppUnitsRoute,
   AppIndexRoute: AppIndexRoute,
   AppPurchasesNewRoute: AppPurchasesNewRoute,
+  AppSalesNewRoute: AppSalesNewRoute,
   AppPurchasesIndexRoute: AppPurchasesIndexRoute,
   AppSalesIndexRoute: AppSalesIndexRoute,
 }
