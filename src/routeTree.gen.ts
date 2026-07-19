@@ -16,6 +16,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
 import { Route as AdminSetupRouteImport } from './routes/admin.setup'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -57,6 +58,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminShopsRoute = AdminShopsRouteImport.update({
   id: '/shops',
   path: '/shops',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
 }
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/setup'
     | '/admin/shops'
+    | '/admin/subscriptions'
     | '/admin/'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/setup'
     | '/admin/shops'
+    | '/admin/subscriptions'
     | '/admin'
     | '/app'
   id:
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/setup'
     | '/admin/shops'
+    | '/admin/subscriptions'
     | '/admin/'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -226,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/subscriptions': {
+      id: '/admin/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/admin/subscriptions'
+      preLoaderRoute: typeof AdminSubscriptionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/shops': {
       id: '/admin/shops'
       path: '/shops'
@@ -270,6 +289,7 @@ interface AdminRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSetupRoute: typeof AdminSetupRoute
   AdminShopsRoute: typeof AdminShopsRoute
+  AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -279,6 +299,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSetupRoute: AdminSetupRoute,
   AdminShopsRoute: AdminShopsRoute,
+  AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
