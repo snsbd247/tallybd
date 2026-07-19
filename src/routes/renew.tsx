@@ -149,22 +149,33 @@ function RenewPage() {
 
             <div className="rounded-md border bg-muted/40 p-3 text-sm">
               <div className="flex justify-between"><span>মোট:</span><span className="text-lg font-bold">৳{amount}</span></div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                সেন্ড মানি করুন এডমিন এর বিকাশ নম্বরে, তারপর TrxID দিন।
-              </div>
+            </div>
+
+            <Button
+              className="w-full bg-pink-600 hover:bg-pink-700 text-white"
+              size="lg"
+              onClick={() => bkashPay.mutate()}
+              disabled={!pkgId || bkashPay.isPending || amount <= 0}
+            >
+              <Zap className="mr-2 h-5 w-5" />
+              {bkashPay.isPending ? "bKash এ রিডাইরেক্ট হচ্ছে…" : `bKash এ ৳${amount} পে করুন`}
+            </Button>
+
+            <div className="relative py-2 text-center text-xs text-muted-foreground">
+              <span className="bg-card px-2 relative z-10">অথবা ম্যানুয়াল সেন্ড মানি</span>
+              <div className="absolute inset-x-0 top-1/2 h-px bg-border" />
             </div>
 
             <div>
-              <Label>bKash TrxID *</Label>
+              <Label>bKash TrxID</Label>
               <Input value={trx} onChange={(e) => setTrx(e.target.value)} placeholder="8N7A2B3C4D" />
             </div>
             <div>
               <Label>আপনার bKash নম্বর</Label>
               <Input value={bkNum} onChange={(e) => setBkNum(e.target.value)} placeholder="01XXXXXXXXX" />
             </div>
-
-            <Button className="w-full" size="lg" onClick={() => submit.mutate()} disabled={!trx || !pkgId || submit.isPending}>
-              <CreditCard className="mr-2 h-5 w-5" /> পেমেন্ট জমা দিন
+            <Button variant="outline" className="w-full" onClick={() => submit.mutate()} disabled={!trx || !pkgId || submit.isPending}>
+              <CreditCard className="mr-2 h-5 w-5" /> ম্যানুয়াল পেমেন্ট জমা দিন
             </Button>
           </div>
         )}
