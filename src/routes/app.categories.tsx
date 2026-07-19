@@ -34,14 +34,14 @@ function Page() {
   });
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">ক্যাটাগরি</h1>
+    <div className="p-4 sm:p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+        <h1 className="truncate text-xl font-bold sm:text-2xl">ক্যাটাগরি</h1>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
           <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> নতুন ক্যাটাগরি</Button>
+            <Button className="shrink-0"><Plus className="mr-2 h-4 w-4" /> নতুন ক্যাটাগরি</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[92dvh] overflow-y-auto">
             <DialogHeader><DialogTitle>{editing ? "এডিট" : "নতুন"} ক্যাটাগরি</DialogTitle></DialogHeader>
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -60,8 +60,8 @@ function Page() {
         </Dialog>
       </div>
 
-      <div className="mt-6 rounded-xl border bg-card">
-        <table className="w-full text-sm">
+      <div className="mt-5 overflow-x-auto rounded-xl border bg-card">
+        <table className="w-full min-w-[540px] text-sm">
           <thead className="border-b bg-muted/50 text-left">
             <tr><th className="p-3">নাম</th><th className="p-3">বিবরণ</th><th className="p-3 text-right">অ্যাকশন</th></tr>
           </thead>

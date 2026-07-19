@@ -37,9 +37,9 @@ function Page() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">কিস্তি ট্র্যাকার</h1>
+    <div className="space-y-5 p-4 sm:p-6">
+      <div className="min-w-0">
+        <h1 className="truncate text-xl font-bold sm:text-2xl">কিস্তি ট্র্যাকার</h1>
         <p className="text-sm text-muted-foreground">সকল কিস্তির অবস্থা ও দ্রুত পরিশোধ</p>
       </div>
 
@@ -51,7 +51,7 @@ function Page() {
       </div>
 
       <Tabs value={status} onValueChange={(v) => setStatus(v as FilterStatus)}>
-        <TabsList>
+        <TabsList className="h-auto max-w-full justify-start overflow-x-auto p-1">
           <TabsTrigger value="pending">অপেক্ষমাণ</TabsTrigger>
           <TabsTrigger value="overdue">ওভারডিউ</TabsTrigger>
           <TabsTrigger value="due_soon">৭ দিনের মধ্যে</TabsTrigger>
@@ -60,8 +60,8 @@ function Page() {
         </TabsList>
       </Tabs>
 
-      <div className="rounded-lg border">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="w-full min-w-[900px] text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="p-3">তারিখ</th>

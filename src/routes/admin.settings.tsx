@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getGatewaySettings, saveBkashSettings, saveSmsSettings, saveSmsTemplate, sendTestSms } from "@/lib/admin.functions";
+import { AdminShell } from "@/components/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,11 +25,12 @@ function SettingsPage() {
   const { data } = useQuery({ queryKey: ["gateway-settings"], queryFn: () => getFn() });
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">সেটিংস</h1>
+    <AdminShell>
+      <div className="p-4 sm:p-6">
+      <h1 className="text-xl font-bold sm:text-2xl">সেটিংস</h1>
       <p className="text-sm text-muted-foreground">পেমেন্ট ও SMS গেটওয়ে ব্যবস্থাপনা</p>
-      <Tabs defaultValue="bkash" className="mt-6">
-        <TabsList>
+      <Tabs defaultValue="bkash" className="mt-5">
+        <TabsList className="h-auto max-w-full justify-start overflow-x-auto p-1">
           <TabsTrigger value="bkash">bKash পেমেন্ট</TabsTrigger>
           <TabsTrigger value="sms">Greenweb SMS</TabsTrigger>
           <TabsTrigger value="templates">SMS টেমপ্লেট</TabsTrigger>
@@ -55,7 +57,8 @@ function SettingsPage() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </AdminShell>
   );
 }
 
@@ -75,7 +78,7 @@ function BkashForm({ initial, onSave }: { initial: any; onSave: (v: any) => Prom
     merchant_number: initial?.merchant_number ?? "", is_active: initial?.is_active ?? false,
   }), [initial]);
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="mt-4 max-w-xl space-y-3 rounded-xl border bg-card p-6">
+    <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="mt-4 max-w-xl space-y-3 rounded-lg border bg-card p-4 sm:p-6">
       <div><Label>মোড</Label>
         <Select value={f.mode} onValueChange={(v) => setF({ ...f, mode: v })}>
           <SelectTrigger><SelectValue /></SelectTrigger>
@@ -101,7 +104,7 @@ function SmsForm({ initial, onSave }: { initial: any; onSave: (v: any) => Promis
     api_token: initial?.api_token ?? "", sender_id: initial?.sender_id ?? "", is_active: initial?.is_active ?? false,
   }), [initial]);
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="mt-4 max-w-xl space-y-3 rounded-xl border bg-card p-6">
+    <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="mt-4 max-w-xl space-y-3 rounded-lg border bg-card p-4 sm:p-6">
       <div><Label>API Token</Label><Input value={f.api_token} onChange={(e) => setF({ ...f, api_token: e.target.value })} /></div>
       <div><Label>Sender ID</Label><Input value={f.sender_id} onChange={(e) => setF({ ...f, sender_id: e.target.value })} /></div>
       <div className="flex items-center gap-2"><Switch checked={f.is_active} onCheckedChange={(v) => setF({ ...f, is_active: v })} /><Label>একটিভ</Label></div>
@@ -141,7 +144,7 @@ function TestSmsForm() {
         } catch (err: any) { toast.error(err?.message ?? "ব্যর্থ"); }
         setBusy(false);
       }}
-      className="mt-4 max-w-xl space-y-3 rounded-xl border bg-card p-6"
+      className="mt-4 max-w-xl space-y-3 rounded-lg border bg-card p-4 sm:p-6"
     >
       <div className="font-semibold">টেস্ট SMS পাঠান</div>
       <div><Label>ফোন নম্বর</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" required /></div>

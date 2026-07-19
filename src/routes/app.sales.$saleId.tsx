@@ -71,12 +71,12 @@ function InvoicePage() {
     doc.save(`invoice-${sale.invoice_no ?? sale.id.slice(0, 8)}.pdf`);
   };
 
-  if (q.isLoading) return <div className="p-6 text-muted-foreground">লোড হচ্ছে...</div>;
-  if (!sale) return <div className="p-6">ইনভয়েস পাওয়া যায়নি</div>;
+  if (q.isLoading) return <div className="p-4 text-muted-foreground sm:p-6">লোড হচ্ছে...</div>;
+  if (!sale) return <div className="p-4 sm:p-6">ইনভয়েস পাওয়া যায়নি</div>;
 
   return (
-    <div className="p-6">
-      <div className="mb-4 flex items-center justify-between print:hidden">
+    <div className="p-4 sm:p-6">
+      <div className="mb-4 grid grid-cols-[auto_auto] items-center justify-between gap-2 print:hidden">
         <Button variant="ghost" size="sm" onClick={() => nav({ to: "/app/sales" })}>
           <ArrowLeft className="mr-2 h-4 w-4" /> ফিরে যান
         </Button>
@@ -86,10 +86,10 @@ function InvoicePage() {
         </div>
       </div>
 
-      <div id="invoice-print" className="mx-auto max-w-3xl rounded-xl border bg-card p-8 shadow-sm print:border-0 print:shadow-none">
-        <div className="flex items-start justify-between border-b pb-4">
-          <div>
-            <h1 className="text-2xl font-bold">{shop?.name}</h1>
+      <div id="invoice-print" className="mx-auto max-w-3xl overflow-x-auto rounded-xl border bg-card p-4 shadow-sm print:border-0 print:p-8 print:shadow-none sm:p-8">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-b pb-4">
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-bold sm:text-2xl">{shop?.name}</h1>
             {shop?.address && <p className="text-sm text-muted-foreground">{shop.address}</p>}
             {shop?.phone && <p className="text-sm text-muted-foreground">ফোন: {shop.phone}</p>}
           </div>
@@ -100,7 +100,7 @@ function InvoicePage() {
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+        <div className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
           <div>
             <div className="text-xs uppercase text-muted-foreground">কাস্টমার</div>
             <div className="font-semibold">{sale.customer?.name ?? "Walk-in"}</div>
@@ -114,7 +114,7 @@ function InvoicePage() {
           </div>
         </div>
 
-        <table className="mt-6 w-full text-sm">
+        <table className="mt-6 w-full min-w-[640px] text-sm">
           <thead className="border-b bg-muted/50 text-left">
             <tr>
               <th className="p-2">#</th>
@@ -153,7 +153,7 @@ function InvoicePage() {
         {installments.length > 0 && (
           <div className="mt-6">
             <h3 className="mb-2 font-semibold">কিস্তি সূচি</h3>
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[560px] text-sm">
               <thead className="bg-muted/50 text-left"><tr>
                 <th className="p-2">#</th><th className="p-2">তারিখ</th>
                 <th className="p-2 text-right">পরিমাণ</th><th className="p-2 text-right">পরিশোধ</th><th className="p-2">অবস্থা</th>

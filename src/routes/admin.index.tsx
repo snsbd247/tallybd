@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getAdminStats } from "@/lib/admin.functions";
+import { AdminShell } from "@/components/admin-shell";
 import { Store, CheckCircle2, XCircle, Lock, Package, MessageSquare } from "lucide-react";
 
 export const Route = createFileRoute("/admin/")({ component: Dashboard });
@@ -20,22 +21,26 @@ function Dashboard() {
   ];
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">ড্যাশবোর্ড</h1>
-      <p className="text-sm text-muted-foreground">সংক্ষিপ্ত ওভারভিউ</p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-xl border bg-card p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">{c.label}</p>
-                <p className="mt-1 text-3xl font-bold">{c.value}</p>
+    <AdminShell>
+      <div className="p-4 sm:p-6">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold sm:text-2xl">ড্যাশবোর্ড</h1>
+          <p className="text-sm text-muted-foreground">সংক্ষিপ্ত ওভারভিউ</p>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {cards.map((c) => (
+            <div key={c.label} className="rounded-lg border bg-card p-4 shadow-sm sm:p-5">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-muted-foreground">{c.label}</p>
+                  <p className="mt-1 text-3xl font-bold leading-none">{c.value}</p>
+                </div>
+                <c.icon className={`h-8 w-8 shrink-0 ${c.color}`} />
               </div>
-              <c.icon className={`h-8 w-8 ${c.color}`} />
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+    </AdminShell>
   );
 }

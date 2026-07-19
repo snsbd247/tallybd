@@ -73,8 +73,8 @@ function Page() {
   };
 
   return (
-    <form onSubmit={submit} className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">নতুন ক্রয়</h1>
+    <form onSubmit={submit} className="space-y-4 p-4 sm:p-6">
+      <h1 className="truncate text-xl font-bold sm:text-2xl">নতুন ক্রয়</h1>
 
       <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 md:grid-cols-4">
         <div>
@@ -102,12 +102,12 @@ function Page() {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card">
-        <div className="flex items-center justify-between border-b p-4">
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b p-4">
           <h2 className="font-semibold">পণ্য</h2>
           <Button type="button" size="sm" onClick={addLine}><Plus className="mr-1 h-4 w-4" /> লাইন যোগ</Button>
         </div>
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[680px] text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="px-3 py-2">পণ্য</th>
@@ -147,21 +147,21 @@ function Page() {
           <Textarea rows={4} value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
         <div className="rounded-xl border bg-card p-4 space-y-2">
-          <div className="flex justify-between"><span>সাবটোটাল</span><span>৳{subtotal.toFixed(2)}</span></div>
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><span>সাবটোটাল</span><span>৳{subtotal.toFixed(2)}</span></div>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
             <span>ছাড়</span>
             <Input type="number" step="0.01" className="w-32" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} />
           </div>
-          <div className="flex justify-between border-t pt-2 text-lg font-bold"><span>মোট</span><span>৳{total.toFixed(2)}</span></div>
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t pt-2 text-lg font-bold"><span>মোট</span><span>৳{total.toFixed(2)}</span></div>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
             <span>পরিশোধ</span>
             <Input type="number" step="0.01" className="w-32" value={paid} onChange={(e) => setPaid(Number(e.target.value))} />
           </div>
-          <div className="flex justify-between text-orange-600 font-semibold"><span>বাকি</span><span>৳{due.toFixed(2)}</span></div>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 font-semibold text-orange-600"><span>বাকি</span><span>৳{due.toFixed(2)}</span></div>
         </div>
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button type="button" variant="outline" onClick={() => nav({ to: "/app/purchases" })}>বাতিল</Button>
         <Button type="submit" disabled={m.isPending}>সংরক্ষণ</Button>
       </div>

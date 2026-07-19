@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listShops, createShop, updateShopStatus, extendShopSubscription, listPackages } from "@/lib/admin.functions";
+import { AdminShell } from "@/components/admin-shell";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,27 +61,28 @@ function ShopsPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">দোকান সমূহ</h1>
+    <AdminShell>
+      <div className="p-4 sm:p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold sm:text-2xl">দোকান সমূহ</h1>
           <p className="text-sm text-muted-foreground">সব রেজিস্ট্রেড দোকান</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> নতুন দোকান</Button>
+            <Button className="shrink-0"><Plus className="mr-2 h-4 w-4" /> নতুন দোকান</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-h-[92dvh] max-w-lg overflow-y-auto">
             <DialogHeader><DialogTitle>নতুন দোকান তৈরি</DialogTitle></DialogHeader>
             <form onSubmit={onCreate} className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div><Label>দোকানের নাম</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
                 <div><Label>মালিকের নাম</Label><Input required value={form.owner_name} onChange={(e) => setForm({ ...form, owner_name: e.target.value })} /></div>
                 <div><Label>ফোন</Label><Input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
                 <div><Label>ইমেইল (লগিন)</Label><Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
               </div>
               <div><Label>ঠিকানা</Label><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <Label>প্যাকেজ</Label>
                   <Select value={form.package_id} onValueChange={(v) => setForm({ ...form, package_id: v })}>
@@ -110,8 +112,8 @@ function ShopsPage() {
         </Dialog>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-xl border bg-card">
-        <table className="w-full text-sm">
+      <div className="mt-5 overflow-x-auto rounded-lg border bg-card">
+        <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="px-4 py-3">দোকান</th>
@@ -146,7 +148,8 @@ function ShopsPage() {
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+    </AdminShell>
   );
 }
 

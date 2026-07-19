@@ -46,15 +46,15 @@ function Page() {
   const lowStock = (prodQ.data ?? []).filter((p: any) => Number(p.stock_quantity) <= Number(p.low_stock_alert));
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">স্টক ম্যানেজমেন্ট</h1>
+    <div className="p-4 sm:p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold sm:text-2xl">স্টক ম্যানেজমেন্ট</h1>
           <p className="text-sm text-muted-foreground">লো স্টক অ্যালার্ট: {lowStock.length}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Boxes className="mr-2 h-4 w-4" /> স্টক সমন্বয়</Button></DialogTrigger>
-          <DialogContent>
+          <DialogTrigger asChild><Button className="shrink-0"><Boxes className="mr-2 h-4 w-4" /> স্টক সমন্বয়</Button></DialogTrigger>
+          <DialogContent className="max-h-[92dvh] overflow-y-auto">
             <DialogHeader><DialogTitle>স্টক সমন্বয়</DialogTitle></DialogHeader>
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -92,9 +92,9 @@ function Page() {
         </div>
       )}
 
-      <div className="mt-6 rounded-xl border bg-card">
+      <div className="mt-5 overflow-x-auto rounded-xl border bg-card">
         <div className="border-b p-3 font-semibold">স্টক মুভমেন্ট (সর্বশেষ ২০০টি)</div>
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[720px] text-sm">
           <thead className="border-b bg-muted/50 text-left">
             <tr>
               <th className="p-3">তারিখ</th>

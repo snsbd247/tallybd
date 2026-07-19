@@ -48,19 +48,19 @@ function Page() {
 
   return (
     <AdminShell>
-      <div className="p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">সাবস্ক্রিপশন পেমেন্ট</h1>
+      <div className="p-4 sm:p-6">
+        <div className="mb-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-bold sm:text-2xl">সাবস্ক্রিপশন পেমেন্ট</h1>
             <p className="text-sm text-muted-foreground">দোকানদারের বিকাশ পেমেন্ট রিভিউ ও অনুমোদন করুন</p>
           </div>
-          <Button variant="outline" onClick={() => sync.mutate()} disabled={sync.isPending}>
+          <Button className="shrink-0" variant="outline" onClick={() => sync.mutate()} disabled={sync.isPending}>
             <RefreshCw className="mr-2 h-4 w-4" /> মেয়াদ শেষ চেক
           </Button>
         </div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList>
+          <TabsList className="h-auto max-w-full justify-start overflow-x-auto p-1">
             <TabsTrigger value="pending">অপেক্ষমান</TabsTrigger>
             <TabsTrigger value="success">অনুমোদিত</TabsTrigger>
             <TabsTrigger value="failed">বাতিল</TabsTrigger>
@@ -74,8 +74,8 @@ function Page() {
           )}
           {q.data?.map((p: any) => (
             <Card key={p.id} className="p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                <div className="min-w-0 space-y-1">
                   <div className="font-semibold">{p.shop?.name} <span className="text-xs text-muted-foreground">({p.shop?.owner_name})</span></div>
                   <div className="text-xs text-muted-foreground">📞 {p.shop?.phone}</div>
                   <div className="text-sm">TrxID: <span className="font-mono font-medium">{p.transaction_id ?? "-"}</span></div>

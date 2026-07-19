@@ -54,15 +54,15 @@ function Page() {
   }, [prodQ.data, search, catFilter]);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">পণ্য সমূহ</h1>
+    <div className="p-4 sm:p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold sm:text-2xl">পণ্য সমূহ</h1>
           <p className="text-sm text-muted-foreground">মোট {prodQ.data?.length ?? 0} টি পণ্য</p>
         </div>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
-          <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" /> নতুন পণ্য</Button></DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogTrigger asChild><Button className="shrink-0"><Plus className="mr-2 h-4 w-4" /> নতুন পণ্য</Button></DialogTrigger>
+          <DialogContent className="max-h-[92dvh] max-w-2xl overflow-y-auto">
             <DialogHeader><DialogTitle>{editing ? "এডিট" : "নতুন"} পণ্য</DialogTitle></DialogHeader>
             <ProductForm
               editing={editing}
@@ -90,7 +90,7 @@ function Page() {
       </div>
 
       <div className="mt-4 overflow-x-auto rounded-xl border bg-card">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[820px] text-sm">
           <thead className="border-b bg-muted/50 text-left">
             <tr>
               <th className="p-3">নাম</th>

@@ -34,10 +34,10 @@ function ShopDashboard() {
   const overdue = (overdueQ.data as any)?.rows ?? [];
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">স্বাগতম, {shop?.owner_name}</h1>
+    <div className="space-y-5 p-4 sm:p-6">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold sm:text-2xl">স্বাগতম, {shop?.owner_name}</h1>
           <p className="text-sm text-muted-foreground">{shop?.name} • প্যাকেজ: {shop?.package?.name ?? "-"}</p>
         </div>
         {daysLeft <= 7 && daysLeft >= 0 && (
@@ -59,8 +59,8 @@ function ShopDashboard() {
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           <Card>
-            <CardContent className="p-5">
-              <div className="mb-3 flex items-center justify-between">
+            <CardContent className="p-4 sm:p-5">
+              <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                 <h2 className="font-semibold">সাম্প্রতিক বিক্রয়</h2>
                 <Link to="/app/sales" className="text-xs text-primary hover:underline flex items-center gap-1">
                   সব দেখুন <ArrowRight className="h-3 w-3" />
@@ -72,8 +72,8 @@ function ShopDashboard() {
                 <div className="divide-y">
                   {recent.map((s: any) => (
                     <Link key={s.id} to="/app/sales/$saleId" params={{ saleId: s.id }}
-                      className="flex items-center justify-between py-2 text-sm hover:bg-muted/50 rounded px-2">
-                      <div>
+                      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded px-2 py-2 text-sm hover:bg-muted/50">
+                      <div className="min-w-0">
                         <div className="font-medium">{s.invoice_no ?? s.id.slice(0, 8)}</div>
                         <div className="text-xs text-muted-foreground">{s.customer?.name ?? "Walk-in"} • {new Date(s.sale_date).toLocaleDateString("bn-BD")}</div>
                       </div>
@@ -89,7 +89,7 @@ function ShopDashboard() {
           </Card>
 
           <Card>
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <h2 className="mb-3 font-semibold">দ্রুত কাজ</h2>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <QuickAction to="/app/sales/new" label="নতুন বিক্রয়" icon={<Receipt className="h-4 w-4" />} />
@@ -102,8 +102,8 @@ function ShopDashboard() {
         </div>
 
         <Card>
-          <CardContent className="p-5">
-            <div className="mb-3 flex items-center justify-between">
+          <CardContent className="p-4 sm:p-5">
+            <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
               <h2 className="font-semibold flex items-center gap-2"><CalendarClock className="h-4 w-4" /> বকেয়া কিস্তি</h2>
               <Link to="/app/installments" className="text-xs text-primary hover:underline">সব</Link>
             </div>
@@ -113,7 +113,7 @@ function ShopDashboard() {
               <div className="space-y-2">
                 {overdue.slice(0, 6).map((i: any) => (
                   <div key={i.id} className="rounded-md border p-2 text-sm">
-                    <div className="flex justify-between">
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                       <span className="font-medium">{i.sale?.customer?.name ?? "-"}</span>
                       <span className="text-destructive font-semibold">{fmt(Number(i.amount) - Number(i.paid_amount || 0))}</span>
                     </div>
