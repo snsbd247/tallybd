@@ -21,6 +21,7 @@ import { Route as AppSuppliersRouteImport } from './routes/app.suppliers'
 import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
 import { Route as AppStockRouteImport } from './routes/app.stock'
 import { Route as AppProductsRouteImport } from './routes/app.products'
+import { Route as AppCustomersRouteImport } from './routes/app.customers'
 import { Route as AppCategoriesRouteImport } from './routes/app.categories'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminSmsLogsRouteImport } from './routes/admin.sms-logs'
@@ -29,7 +30,9 @@ import { Route as AdminSetupRouteImport } from './routes/admin.setup'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AppSalesIndexRouteImport } from './routes/app.sales.index'
 import { Route as AppPurchasesIndexRouteImport } from './routes/app.purchases.index'
+import { Route as AppSalesNewRouteImport } from './routes/app.sales.new'
 import { Route as AppPurchasesNewRouteImport } from './routes/app.purchases.new'
 import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
 import { Route as ApiPublicBkashCallbackRouteImport } from './routes/api/public/bkash/callback'
@@ -94,6 +97,11 @@ const AppProductsRoute = AppProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCustomersRoute = AppCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCategoriesRoute = AppCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -134,9 +142,19 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppSalesIndexRoute = AppSalesIndexRouteImport.update({
+  id: '/sales/',
+  path: '/sales/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPurchasesIndexRoute = AppPurchasesIndexRouteImport.update({
   id: '/purchases/',
   path: '/purchases/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSalesNewRoute = AppSalesNewRouteImport.update({
+  id: '/sales/new',
+  path: '/sales/new',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPurchasesNewRoute = AppPurchasesNewRouteImport.update({
@@ -170,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/categories': typeof AppCategoriesRoute
+  '/app/customers': typeof AppCustomersRoute
   '/app/products': typeof AppProductsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
@@ -178,7 +197,9 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/sales/new': typeof AppSalesNewRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
+  '/app/sales/': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -194,6 +215,7 @@ export interface FileRoutesByTo {
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/categories': typeof AppCategoriesRoute
+  '/app/customers': typeof AppCustomersRoute
   '/app/products': typeof AppProductsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
@@ -202,7 +224,9 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/sales/new': typeof AppSalesNewRoute
   '/app/purchases': typeof AppPurchasesIndexRoute
+  '/app/sales': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -221,6 +245,7 @@ export interface FileRoutesById {
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/categories': typeof AppCategoriesRoute
+  '/app/customers': typeof AppCustomersRoute
   '/app/products': typeof AppProductsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
@@ -229,7 +254,9 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
+  '/app/sales/new': typeof AppSalesNewRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
+  '/app/sales/': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -249,6 +276,7 @@ export interface FileRouteTypes {
     | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/categories'
+    | '/app/customers'
     | '/app/products'
     | '/app/stock'
     | '/app/subscription'
@@ -257,7 +285,9 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/app/purchases/new'
+    | '/app/sales/new'
     | '/app/purchases/'
+    | '/app/sales/'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesByTo: FileRoutesByTo
@@ -273,6 +303,7 @@ export interface FileRouteTypes {
     | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/categories'
+    | '/app/customers'
     | '/app/products'
     | '/app/stock'
     | '/app/subscription'
@@ -281,7 +312,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/app/purchases/new'
+    | '/app/sales/new'
     | '/app/purchases'
+    | '/app/sales'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   id:
@@ -299,6 +332,7 @@ export interface FileRouteTypes {
     | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/categories'
+    | '/app/customers'
     | '/app/products'
     | '/app/stock'
     | '/app/subscription'
@@ -307,7 +341,9 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/'
     | '/app/purchases/new'
+    | '/app/sales/new'
     | '/app/purchases/'
+    | '/app/sales/'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesById: FileRoutesById
@@ -408,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/customers': {
+      id: '/app/customers'
+      path: '/customers'
+      fullPath: '/app/customers'
+      preLoaderRoute: typeof AppCustomersRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/categories': {
       id: '/app/categories'
       path: '/categories'
@@ -464,11 +507,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/sales/': {
+      id: '/app/sales/'
+      path: '/sales'
+      fullPath: '/app/sales/'
+      preLoaderRoute: typeof AppSalesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/purchases/': {
       id: '/app/purchases/'
       path: '/purchases'
       fullPath: '/app/purchases/'
       preLoaderRoute: typeof AppPurchasesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/sales/new': {
+      id: '/app/sales/new'
+      path: '/sales/new'
+      fullPath: '/app/sales/new'
+      preLoaderRoute: typeof AppSalesNewRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/purchases/new': {
@@ -521,6 +578,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
   AppCategoriesRoute: typeof AppCategoriesRoute
+  AppCustomersRoute: typeof AppCustomersRoute
   AppProductsRoute: typeof AppProductsRoute
   AppStockRoute: typeof AppStockRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
@@ -528,11 +586,14 @@ interface AppRouteChildren {
   AppUnitsRoute: typeof AppUnitsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppPurchasesNewRoute: typeof AppPurchasesNewRoute
+  AppSalesNewRoute: typeof AppSalesNewRoute
   AppPurchasesIndexRoute: typeof AppPurchasesIndexRoute
+  AppSalesIndexRoute: typeof AppSalesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppCategoriesRoute: AppCategoriesRoute,
+  AppCustomersRoute: AppCustomersRoute,
   AppProductsRoute: AppProductsRoute,
   AppStockRoute: AppStockRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,
@@ -540,7 +601,9 @@ const AppRouteChildren: AppRouteChildren = {
   AppUnitsRoute: AppUnitsRoute,
   AppIndexRoute: AppIndexRoute,
   AppPurchasesNewRoute: AppPurchasesNewRoute,
+  AppSalesNewRoute: AppSalesNewRoute,
   AppPurchasesIndexRoute: AppPurchasesIndexRoute,
+  AppSalesIndexRoute: AppSalesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -6,7 +6,7 @@ import { getMyShop } from "@/lib/shop.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Store, LogOut, CreditCard, Package, Tag, Ruler, Boxes, Truck, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Store, LogOut, CreditCard, Package, Tag, Ruler, Boxes, Truck, ShoppingCart, Users, Receipt } from "lucide-react";
 
 export const Route = createFileRoute("/app")({ ssr: false, component: AppLayout });
 
@@ -43,6 +43,8 @@ function AppLayout() {
     { to: "/app/stock", label: "স্টক", icon: Boxes },
     { to: "/app/suppliers", label: "সাপ্লায়ার", icon: Truck },
     { to: "/app/purchases", label: "ক্রয়", icon: ShoppingCart },
+    { to: "/app/customers", label: "কাস্টমার", icon: Users },
+    { to: "/app/sales", label: "বিক্রয়", icon: Receipt },
     { to: "/app/subscription", label: "সাবস্ক্রিপশন", icon: CreditCard },
   ];
 
