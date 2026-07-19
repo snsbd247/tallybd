@@ -174,9 +174,9 @@ export const saveProduct = createServerFn({ method: "POST" })
           _quantity: data.opening_stock,
           _unit_cost: data.purchase_price,
           _reference_type: "opening",
-          _reference_id: null,
+          _reference_id: null as any,
           _note: "প্রারম্ভিক স্টক",
-        });
+        } as any);
       }
       return { ok: true, id: created.id };
     }
@@ -211,11 +211,11 @@ export const adjustStock = createServerFn({ method: "POST" })
       _product_id: data.product_id,
       _movement_type: "adjustment",
       _quantity: data.quantity,
-      _unit_cost: null,
+      _unit_cost: null as any,
       _reference_type: "manual",
-      _reference_id: null,
+      _reference_id: null as any,
       _note: data.note ?? null,
-    });
+    } as any);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
