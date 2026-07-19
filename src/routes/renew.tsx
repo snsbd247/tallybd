@@ -56,6 +56,33 @@ function RenewPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const bkashPay = useMutation({
+    mutationFn: () => bkashFn({ data: { package_id: pkgId, billing_cycle: cycle } }),
+    onSuccess: (res: any) => { if (res?.url) window.location.href = res.url; },
+    onError: (e: any) => toast.error(e.message ?? "bKash পেমেন্ট শুরু করা যায়নি"),
+  });
+
+  // Handle bKash callback status from query string
+  const [cbStatus, setCbStatus] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const bk = sp.get("bkash");
+    if (bk) {
+      setCbStatus(bk);
+      if (bk === "success") {
+        toast.success("পেমেন্ট সফল! একাউন্ট এক্টিভ হচ্ছে…");
+        setTimeout(() => qc.invalidateQueries(), 500);
+      } else if (bk === "failed" || bk === "failure" || bk === "error") {
+        toast.error("পেমেন্ট ব্যর্থ হয়েছে");
+      } else if (bk === "cancel") {
+        toast("পেমেন্ট বাতিল করা হয়েছে");
+      }
+      // Clean the URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [qc]);
+
   const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/login" }); };
 
   if (shop && shop.status === "active") {
@@ -76,6 +103,17 @@ function RenewPage() {
         <p className="mt-2 text-center text-sm text-muted-foreground">
           <span className="font-medium">{shop?.name}</span> — সাবস্ক্রিপশনের মেয়াদ শেষ। বিকাশ পেমেন্ট করে রিনিউ করুন।
         </p>
+
+        {cbStatus === "success" && (
+          <div className="mt-4 flex items-center gap-2 rounded-lg border-2 border-green-200 bg-green-50 p-3 text-sm text-green-800">
+            <CheckCircle2 className="h-5 w-5" /> পেমেন্ট সফল। একাউন্ট এক্টিভ হচ্ছে…
+          </div>
+        )}
+        {cbStatus && cbStatus !== "success" && (
+          <div className="mt-4 flex items-center gap-2 rounded-lg border-2 border-red-200 bg-red-50 p-3 text-sm text-red-800">
+            <XCircle className="h-5 w-5" /> পেমেন্ট সম্পন্ন হয়নি ({cbStatus})। আবার চেষ্টা করুন।
+          </div>
+        )}
 
         {pending ? (
           <div className="mt-6 rounded-lg border-2 border-yellow-200 bg-yellow-50 p-4 text-center">
