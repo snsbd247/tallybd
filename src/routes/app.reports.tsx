@@ -168,10 +168,10 @@ function ProfitReport() {
     <div className="space-y-4 pt-4">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <DateRange from={f.from} to={f.to} gran={f.gran} onChange={setF} />
-        <Button variant="outline" onClick={() => download(`profit_${f.from}_${f.to}.csv`,
-          toCSV(["সময়", "পরিমাণ", "বিক্রয়", "খরচ", "লাভ"], rows.map(r => [r.period, r.qty, r.revenue, r.cost, r.profit])))}>
-          <Download className="mr-2 h-4 w-4" /> CSV
-        </Button>
+        <ExportButtons name={`profit_${f.from}_${f.to}`} title="লাভ রিপোর্ট"
+          headers={["সময়", "পরিমাণ", "বিক্রয়", "খরচ", "লাভ"]}
+          rows={rows.map(r => [r.period, r.qty, r.revenue, r.cost, r.profit])}
+          totals={t ? ["মোট", t.qty, t.revenue, t.cost, t.profit] : undefined} />
       </div>
       <ReportTable
         loading={isLoading}
