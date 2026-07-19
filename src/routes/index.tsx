@@ -10,20 +10,21 @@ function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <header className="border-b bg-background/80 backdrop-blur sticky top-0 z-10">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Store className="h-5 w-5" />
             </div>
-            <span className="text-xl font-bold">Supershop</span>
+            <span className="truncate text-lg font-bold sm:text-xl">Supershop</span>
           </div>
-          <nav className="flex items-center gap-2">
+          <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
             <Link to="/login">
-              <Button variant="ghost">দোকানদার লগিন</Button>
+              <Button variant="ghost" size="sm" className="px-2 sm:px-3">লগিন</Button>
             </Link>
             <Link to="/admin/login">
-              <Button variant="outline">
-                <ShieldCheck className="mr-2 h-4 w-4" /> সুপার এডমিন
+              <Button variant="outline" size="sm" className="px-2 sm:px-3">
+                <ShieldCheck className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">সুপার এডমিন</span>
               </Button>
             </Link>
           </nav>
