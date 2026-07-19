@@ -233,3 +233,56 @@ export const receiveCustomerPayment = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/* -------- Installments -------- */
+
+export const listInstallments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({
+    status: z.enum(["all", "pending", "overdue", "paid", "due_soon"]).default("all"),
+    customer_id: z.string().uuid().optional(),
+  }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const shopId = await getShopId(context);
+
+    // Auto-mark overdue: any pending/partial with due_date < today
+    await context.supabase.from("installment_schedules")
+      .update({ status: "overdue" })
+      .eq("shop_id", shopId)
+      .in("status", ["pending", "partial"])
+      .lt("due_date", new Date().toISOString().slice(0, 10));
+
+    let q = context.supabase.from("installment_schedules")
+      .select("*, customer:customers(id,name,phone), sale:sales(id,invoice_no,total)")
+      .eq("shop_id", shopId)
+      .order("due_date", { ascending: true })
+      .limit(1000);
+
+    const today = new Date().toISOString().slice(0, 10);
+    const soon = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+
+    if (data.status === "pending") q = q.in("status", ["pending", "partial"]);
+    else if (data.status === "overdue") q = q.eq("status", "overdue");
+    else if (data.status === "paid") q = q.eq("status", "paid");
+    else if (data.status === "due_soon") q = q.in("status", ["pending", "partial"]).gte("due_date", today).lte("due_date", soon);
+    if (data.customer_id) q = q.eq("customer_id", data.customer_id);
+
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+
+    // Summary
+    const all = rows ?? [];
+    const summary = {
+      total: all.length,
+      pending_amount: 0,
+      overdue_amount: 0,
+      paid_amount: 0,
+    };
+    for (const r of all) {
+      const remaining = Number(r.amount) - Number(r.paid_amount);
+      if (r.status === "overdue") summary.overdue_amount += remaining;
+      else if (r.status === "paid") summary.paid_amount += Number(r.amount);
+      else summary.pending_amount += remaining;
+    }
+    return { rows: all, summary };
+  });
