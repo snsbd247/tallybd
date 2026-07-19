@@ -140,10 +140,10 @@ function PurchaseReport() {
     <div className="space-y-4 pt-4">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <DateRange from={f.from} to={f.to} gran={f.gran} onChange={setF} />
-        <Button variant="outline" onClick={() => download(`purchase_${f.from}_${f.to}.csv`,
-          toCSV(["সময়", "ইনভয়েস", "মোট", "পরিশোধ", "বাকি"], rows.map(r => [r.period, r.count, r.total, r.paid, r.due])))}>
-          <Download className="mr-2 h-4 w-4" /> CSV
-        </Button>
+        <ExportButtons name={`purchase_${f.from}_${f.to}`} title="ক্রয় রিপোর্ট"
+          headers={["সময়", "ইনভয়েস #", "মোট ক্রয়", "পরিশোধ", "বাকি"]}
+          rows={rows.map(r => [r.period, r.count, r.total, r.paid, r.due])}
+          totals={t ? ["মোট", t.count, t.total, t.paid, t.due] : undefined} />
       </div>
       <ReportTable
         loading={isLoading}
