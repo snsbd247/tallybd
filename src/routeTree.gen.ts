@@ -16,7 +16,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AppUnitsRouteImport } from './routes/app.units'
 import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
+import { Route as AppStockRouteImport } from './routes/app.stock'
+import { Route as AppProductsRouteImport } from './routes/app.products'
+import { Route as AppCategoriesRouteImport } from './routes/app.categories'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminSmsLogsRouteImport } from './routes/admin.sms-logs'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
@@ -62,9 +66,29 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppUnitsRoute = AppUnitsRouteImport.update({
+  id: '/units',
+  path: '/units',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStockRoute = AppStockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProductsRoute = AppProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCategoriesRoute = AppCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => AppRoute,
 } as any)
 const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
@@ -127,7 +151,11 @@ export interface FileRoutesByFullPath {
   '/admin/shops': typeof AdminShopsRoute
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/app/categories': typeof AppCategoriesRoute
+  '/app/products': typeof AppProductsRoute
+  '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
+  '/app/units': typeof AppUnitsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
@@ -144,7 +172,11 @@ export interface FileRoutesByTo {
   '/admin/shops': typeof AdminShopsRoute
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/app/categories': typeof AppCategoriesRoute
+  '/app/products': typeof AppProductsRoute
+  '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
+  '/app/units': typeof AppUnitsRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
@@ -164,7 +196,11 @@ export interface FileRoutesById {
   '/admin/shops': typeof AdminShopsRoute
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/app/categories': typeof AppCategoriesRoute
+  '/app/products': typeof AppProductsRoute
+  '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
+  '/app/units': typeof AppUnitsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
@@ -185,7 +221,11 @@ export interface FileRouteTypes {
     | '/admin/shops'
     | '/admin/sms-logs'
     | '/admin/subscriptions'
+    | '/app/categories'
+    | '/app/products'
+    | '/app/stock'
     | '/app/subscription'
+    | '/app/units'
     | '/admin/'
     | '/app/'
     | '/api/public/bkash/callback'
@@ -202,7 +242,11 @@ export interface FileRouteTypes {
     | '/admin/shops'
     | '/admin/sms-logs'
     | '/admin/subscriptions'
+    | '/app/categories'
+    | '/app/products'
+    | '/app/stock'
     | '/app/subscription'
+    | '/app/units'
     | '/admin'
     | '/app'
     | '/api/public/bkash/callback'
@@ -221,7 +265,11 @@ export interface FileRouteTypes {
     | '/admin/shops'
     | '/admin/sms-logs'
     | '/admin/subscriptions'
+    | '/app/categories'
+    | '/app/products'
+    | '/app/stock'
     | '/app/subscription'
+    | '/app/units'
     | '/admin/'
     | '/app/'
     | '/api/public/bkash/callback'
@@ -289,11 +337,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/units': {
+      id: '/app/units'
+      path: '/units'
+      fullPath: '/app/units'
+      preLoaderRoute: typeof AppUnitsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/subscription': {
       id: '/app/subscription'
       path: '/subscription'
       fullPath: '/app/subscription'
       preLoaderRoute: typeof AppSubscriptionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/stock': {
+      id: '/app/stock'
+      path: '/stock'
+      fullPath: '/app/stock'
+      preLoaderRoute: typeof AppStockRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/products': {
+      id: '/app/products'
+      path: '/products'
+      fullPath: '/app/products'
+      preLoaderRoute: typeof AppProductsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/categories': {
+      id: '/app/categories'
+      path: '/categories'
+      fullPath: '/app/categories'
+      preLoaderRoute: typeof AppCategoriesRouteImport
       parentRoute: typeof AppRoute
     }
     '/admin/subscriptions': {
@@ -387,12 +463,20 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
+  AppCategoriesRoute: typeof AppCategoriesRoute
+  AppProductsRoute: typeof AppProductsRoute
+  AppStockRoute: typeof AppStockRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
+  AppUnitsRoute: typeof AppUnitsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppCategoriesRoute: AppCategoriesRoute,
+  AppProductsRoute: AppProductsRoute,
+  AppStockRoute: AppStockRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,
+  AppUnitsRoute: AppUnitsRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

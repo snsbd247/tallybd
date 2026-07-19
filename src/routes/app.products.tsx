@@ -68,7 +68,7 @@ function Page() {
               editing={editing}
               categories={catQ.data ?? []}
               units={unitQ.data ?? []}
-              onSubmit={(d) => save.mutate(d)}
+              onSubmit={(d: any) => save.mutate(d)}
               submitting={save.isPending}
             />
           </DialogContent>
