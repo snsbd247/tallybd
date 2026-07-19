@@ -81,8 +81,50 @@ function AppLayout() {
         </div>
       </aside>
       <main className="flex-1 bg-muted/30">
+        <div className="flex items-center justify-end border-b bg-card px-4 py-2 md:px-6">
+          <NotificationsBell />
+        </div>
         <Outlet />
       </main>
     </div>
+  );
+}
+
+function NotificationsBell() {
+  const fn = useServerFn(getShopNotifications);
+  const { data } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => fn(),
+    refetchInterval: 60_000,
+  });
+  const items = data?.items ?? [];
+  const count = data?.count ?? 0;
+  const severityColor = (s: string) => s === "danger" ? "text-destructive" : s === "warn" ? "text-amber-600" : "text-muted-foreground";
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          {count > 0 && (
+            <Badge className="absolute -right-1 -top-1 h-5 min-w-5 rounded-full px-1 text-[10px]" variant="destructive">{count}</Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 p-0">
+        <div className="border-b px-4 py-2 font-semibold text-sm">নোটিফিকেশন</div>
+        {items.length === 0 ? (
+          <div className="p-6 text-center text-sm text-muted-foreground">সব ক্লিয়ার ✓</div>
+        ) : (
+          <div className="max-h-80 divide-y overflow-y-auto">
+            {items.map((n: any, i: number) => (
+              <Link key={i} to={n.href ?? "/app"} className="block px-4 py-3 hover:bg-muted/50">
+                <div className={`text-sm font-medium ${severityColor(n.severity)}`}>{n.title}</div>
+                <div className="text-xs text-muted-foreground">{n.body}</div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
   );
 }
