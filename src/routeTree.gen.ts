@@ -16,6 +16,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AppSubscriptionRouteImport } from './routes/app.subscription'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminShopsRouteImport } from './routes/admin.shops'
 import { Route as AdminSetupRouteImport } from './routes/admin.setup'
@@ -57,6 +58,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => AppRoute,
 } as any)
 const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
   id: '/subscriptions',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/app/subscription': typeof AppSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/app/subscription': typeof AppSubscriptionRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
 }
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/admin/setup': typeof AdminSetupRoute
   '/admin/shops': typeof AdminShopsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/app/subscription': typeof AppSubscriptionRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/admin/setup'
     | '/admin/shops'
     | '/admin/subscriptions'
+    | '/app/subscription'
     | '/admin/'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/admin/setup'
     | '/admin/shops'
     | '/admin/subscriptions'
+    | '/app/subscription'
     | '/admin'
     | '/app'
   id:
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/admin/setup'
     | '/admin/shops'
     | '/admin/subscriptions'
+    | '/app/subscription'
     | '/admin/'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -237,6 +249,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/app/subscription': {
+      id: '/app/subscription'
+      path: '/subscription'
+      fullPath: '/app/subscription'
+      preLoaderRoute: typeof AppSubscriptionRouteImport
+      parentRoute: typeof AppRoute
     }
     '/admin/subscriptions': {
       id: '/admin/subscriptions'
@@ -306,10 +325,12 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
+  AppSubscriptionRoute: typeof AppSubscriptionRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppSubscriptionRoute: AppSubscriptionRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
