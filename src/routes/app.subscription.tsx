@@ -58,15 +58,15 @@ function Page() {
   const amount = activePkg ? (cycle === "monthly" ? activePkg.price_monthly : activePkg.price_yearly) : 0;
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">সাবস্ক্রিপশন</h1>
+    <div className="space-y-5 p-4 sm:p-6">
+      <div className="min-w-0">
+        <h1 className="truncate text-xl font-bold sm:text-2xl">সাবস্ক্রিপশন</h1>
         <p className="text-sm text-muted-foreground">আপনার প্যাকেজ, মেয়াদ, রিনিউ, আপগ্রেড</p>
       </div>
 
-      <Card className="p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+      <Card className="p-4 sm:p-6">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
+          <div className="min-w-0">
             <div className="text-sm text-muted-foreground">বর্তমান প্যাকেজ</div>
             <div className="mt-1 text-2xl font-bold">{shop?.package?.name ?? "-"}</div>
             <div className="mt-2 text-sm">
@@ -89,14 +89,14 @@ function Page() {
         </div>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-4">
           <h2 className="mb-3 font-semibold">পেমেন্ট ইতিহাস</h2>
           <div className="space-y-2">
             {paysQ.data?.length === 0 && <div className="text-sm text-muted-foreground">কোন পেমেন্ট নেই</div>}
             {paysQ.data?.map((p: any) => (
-              <div key={p.id} className="flex justify-between border-b pb-2 text-sm last:border-0">
-                <div>
+              <div key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b pb-2 text-sm last:border-0">
+                <div className="min-w-0">
                   <div className="font-medium">৳{Number(p.amount).toLocaleString("bn-BD")}</div>
                   <div className="text-xs text-muted-foreground">TrxID: {p.transaction_id ?? "-"}</div>
                   <div className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleString("bn-BD")}</div>

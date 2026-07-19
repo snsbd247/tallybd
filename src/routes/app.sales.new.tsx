@@ -116,10 +116,10 @@ function Page() {
   };
 
   return (
-    <form onSubmit={submit} className="p-6 space-y-4">
-      <div className="flex items-center gap-2">
-        <ShoppingCart className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">নতুন বিক্রয় (POS)</h1>
+    <form onSubmit={submit} className="space-y-4 p-4 sm:p-6">
+      <div className="flex min-w-0 items-center gap-2">
+        <ShoppingCart className="h-6 w-6 shrink-0 text-primary" />
+        <h1 className="truncate text-xl font-bold sm:text-2xl">নতুন বিক্রয় (POS)</h1>
       </div>
 
       <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 md:grid-cols-4">
@@ -147,11 +147,11 @@ function Page() {
         <div><Label>তারিখ</Label><Input type="date" value={saleDate} onChange={(e) => setSaleDate(e.target.value)} /></div>
       </div>
 
-      <div className="rounded-xl border bg-card">
-        <div className="flex items-center gap-2 border-b p-4">
-          <Input placeholder="পণ্য নাম / SKU / বারকোড দিয়ে খুঁজুন" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <div className="grid gap-2 border-b p-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)]">
+          <Input placeholder="পণ্য নাম / SKU / বারকোড দিয়ে খুঁজুন" value={search} onChange={(e) => setSearch(e.target.value)} />
           <Select value={productPick} onValueChange={addProduct}>
-            <SelectTrigger className="max-w-xs"><SelectValue placeholder="বাছাই করে যোগ করুন" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="বাছাই করে যোগ করুন" /></SelectTrigger>
             <SelectContent>
               {filteredProducts.slice(0, 50).map((p: any) => (
                 <SelectItem key={p.id} value={p.id}>
@@ -161,7 +161,7 @@ function Page() {
             </SelectContent>
           </Select>
         </div>
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[680px] text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="px-3 py-2">পণ্য</th>
@@ -198,7 +198,7 @@ function Page() {
           <div><Label>নোট</Label><Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} /></div>
 
           {saleType === "installment" && (
-            <div className="grid grid-cols-3 gap-2 rounded-lg border bg-muted/30 p-3">
+            <div className="grid gap-2 rounded-lg border bg-muted/30 p-3 sm:grid-cols-3">
               <div><Label>কিস্তি সংখ্যা</Label><Input type="number" min="1" max="60" value={installments}
                 onChange={(e) => setInstallments(Math.max(1, Number(e.target.value)))} /></div>
               <div><Label>ফ্রিকোয়েন্সি</Label>
@@ -212,7 +212,7 @@ function Page() {
               </div>
               <div><Label>শুরুর তারিখ</Label><Input type="date" value={instStart} onChange={(e) => setInstStart(e.target.value)} /></div>
               {due > 0 && (
-                <div className="col-span-3 text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground sm:col-span-3">
                   প্রতি কিস্তি ≈ ৳{(due / installments).toFixed(2)} × {installments} = ৳{due.toFixed(2)}
                 </div>
               )}
@@ -221,16 +221,16 @@ function Page() {
         </div>
 
         <div className="rounded-xl border bg-card p-4 space-y-2">
-          <div className="flex justify-between"><span>সাবটোটাল</span><span>৳{subtotal.toFixed(2)}</span></div>
-          <div className="flex items-center justify-between">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><span>সাবটোটাল</span><span>৳{subtotal.toFixed(2)}</span></div>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
             <span>ছাড়</span>
             <Input type="number" step="0.01" className="w-32" value={discount} onChange={(e) => setDiscount(Number(e.target.value))} />
           </div>
-          <div className="flex justify-between border-t pt-2 text-lg font-bold"><span>মোট</span><span>৳{total.toFixed(2)}</span></div>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t pt-2 text-lg font-bold"><span>মোট</span><span>৳{total.toFixed(2)}</span></div>
 
           {saleType !== "cash" && (
             <>
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                 <span>এখন পরিশোধ</span>
                 <Input type="number" step="0.01" min="0" max={total} className="w-32" value={paid}
                   onChange={(e) => setPaid(Number(e.target.value))} />
@@ -264,14 +264,14 @@ function Page() {
             </div>
           )}
 
-          <div className="flex justify-between border-t pt-2">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t pt-2">
             <span>পরিশোধিত</span><span className="text-green-600 font-semibold">৳{effectivePaid.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between"><span>বাকি</span><span className="text-orange-600 font-semibold">৳{due.toFixed(2)}</span></div>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><span>বাকি</span><span className="font-semibold text-orange-600">৳{due.toFixed(2)}</span></div>
         </div>
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button type="button" variant="outline" onClick={() => nav({ to: "/app/sales" })}>বাতিল</Button>
         <Button type="submit" disabled={m.isPending}><Plus className="mr-1 h-4 w-4" /> বিক্রয় সংরক্ষণ</Button>
       </div>
