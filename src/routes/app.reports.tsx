@@ -113,11 +113,10 @@ function SalesReport() {
     <div className="space-y-4 pt-4">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <DateRange from={f.from} to={f.to} gran={f.gran} onChange={setF} />
-        <Button variant="outline" onClick={() => download(`sales_${f.from}_${f.to}.csv`,
-          toCSV(["সময়", "ইনভয়েস", "মোট", "পরিশোধ", "বাকি", "নগদ", "বাকি বিক্রি", "কিস্তি"],
-            rows.map(r => [r.period, r.count, r.total, r.paid, r.due, r.cash, r.credit, r.installment])))}>
-          <Download className="mr-2 h-4 w-4" /> CSV
-        </Button>
+        <ExportButtons name={`sales_${f.from}_${f.to}`} title="বিক্রয় রিপোর্ট"
+          headers={["সময়", "ইনভয়েস #", "মোট বিক্রয়", "পরিশোধ", "বাকি", "নগদ", "বাকি বিক্রি", "কিস্তি"]}
+          rows={rows.map(r => [r.period, r.count, r.total, r.paid, r.due, r.cash, r.credit, r.installment])}
+          totals={t ? ["মোট", t.count, t.total, t.paid, t.due, t.cash, t.credit, t.installment] : undefined} />
       </div>
       <ReportTable
         loading={isLoading}
