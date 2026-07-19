@@ -10,7 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
-import { Download, TrendingUp, TrendingDown, Wallet, Package } from "lucide-react";
+import { FileSpreadsheet, FileText, FileDown, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { downloadCSV, downloadExcel, downloadPDF } from "@/lib/export-utils";
 
 export const Route = createFileRoute("/app/reports")({ component: Page });
 
@@ -18,16 +19,23 @@ const fmt = (n: number) => `৳${Number(n || 0).toLocaleString("bn-BD", { maximu
 const today = () => new Date().toISOString().slice(0, 10);
 const monthStart = () => today().slice(0, 8) + "01";
 
-function toCSV(headers: string[], rows: (string | number)[][]) {
-  const esc = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  return [headers.map(esc).join(","), ...rows.map(r => r.map(esc).join(","))].join("\n");
-}
-
-function download(name: string, csv: string) {
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = name; a.click();
-  URL.revokeObjectURL(url);
+function ExportButtons({ name, title, headers, rows, totals }: {
+  name: string; title: string; headers: string[]; rows: (string | number)[][]; totals?: (string | number)[];
+}) {
+  const all = totals ? [...rows, totals] : rows;
+  return (
+    <div className="flex gap-2">
+      <Button variant="outline" size="sm" onClick={() => downloadCSV(name, headers, all)}>
+        <FileDown className="mr-1 h-4 w-4" /> CSV
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => downloadExcel(name, headers, all)}>
+        <FileSpreadsheet className="mr-1 h-4 w-4" /> Excel
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => downloadPDF({ name, title, headers, rows, totalsRow: totals })}>
+        <FileText className="mr-1 h-4 w-4" /> PDF
+      </Button>
+    </div>
+  );
 }
 
 function Page() {
