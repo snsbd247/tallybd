@@ -14,16 +14,16 @@ function Page() {
 
   return (
     <AdminShell>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">SMS লগ</h1>
+      <div className="p-4 sm:p-6">
+        <h1 className="text-xl font-bold sm:text-2xl">SMS লগ</h1>
         <p className="text-sm text-muted-foreground">সাম্প্রতিক ২০০টি SMS প্রেরণের ইতিহাস</p>
         <div className="mt-4 space-y-2">
           {q.data?.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground">কোন লগ নেই</Card>}
           {q.data?.map((l: any) => (
             <Card key={l.id} className="p-3">
-              <div className="flex items-start justify-between gap-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
                     <span className="font-mono">{l.recipient}</span>
                     {l.shop?.name && <span className="text-xs text-muted-foreground">• {l.shop.name}</span>}
                     {l.template_code && <span className="rounded bg-muted px-1.5 py-0.5 text-xs">{l.template_code}</span>}
