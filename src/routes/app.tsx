@@ -59,12 +59,12 @@ function AppLayout() {
   const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/login" }); };
 
   const NavList = ({ onClick }: { onClick?: () => void }) => (
-    <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
+    <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
       {NAV_ITEMS.map((n) => {
         const active = n.exact ? loc.pathname === n.to : loc.pathname.startsWith(n.to);
         return (
           <Link key={n.to} to={n.to} onClick={onClick}
-            className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm ${active ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>
+            className={`flex min-w-0 items-center gap-3 rounded-md px-3 py-2.5 text-sm ${active ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>
             <n.icon className="h-4 w-4 shrink-0" /> <span className="truncate">{n.label}</span>
           </Link>
         );
@@ -73,7 +73,7 @@ function AppLayout() {
   );
 
   const ShopHeader = () => (
-    <div className="flex items-center gap-2 border-b px-4 py-4">
+    <div className="flex min-w-0 items-center gap-2 border-b px-4 py-4 pr-12">
       <Store className="h-5 w-5 shrink-0 text-primary" />
       <div className="min-w-0">
         <div className="text-sm font-bold truncate">{shopQ.data?.shop?.name}</div>
@@ -83,7 +83,7 @@ function AppLayout() {
   );
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-dvh">
       {/* Desktop sidebar */}
       <aside className="hidden w-60 flex-col border-r bg-card md:flex">
         <ShopHeader />
@@ -96,16 +96,17 @@ function AppLayout() {
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col bg-muted/30">
-        <div className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b bg-card px-3 py-2 md:px-6">
+        <div className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b bg-card px-3 py-2.5 md:px-6">
           <div className="flex min-w-0 items-center gap-2">
             {/* Mobile menu trigger */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" className="h-9 shrink-0 gap-2 px-3 md:hidden" aria-label="মেন্যু খুলুন">
                   <Menu className="h-5 w-5" />
+                  <span className="text-sm font-medium">মেন্যু</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0 flex flex-col">
+              <SheetContent side="left" className="flex w-[min(84vw,20rem)] flex-col p-0">
                 <SheetTitle className="sr-only">মেন্যু</SheetTitle>
                 <ShopHeader />
                 <NavList onClick={() => setMobileOpen(false)} />
@@ -118,11 +119,12 @@ function AppLayout() {
             </Sheet>
             <div className="min-w-0 md:hidden">
               <div className="truncate text-sm font-semibold">{shopQ.data?.shop?.name}</div>
+              <div className="truncate text-xs text-muted-foreground">শপ প্যানেল</div>
             </div>
           </div>
           <NotificationsBell />
         </div>
-        <div className="min-w-0 flex-1 overflow-x-auto">
+        <div className="min-w-0 flex-1 overflow-x-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <Outlet />
         </div>
       </main>
