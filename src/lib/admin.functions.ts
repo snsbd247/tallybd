@@ -292,3 +292,120 @@ export const saveSmsTemplate = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ---------- Subscription Payments ----------
+export const listSubscriptionPayments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ status: z.enum(["pending", "success", "failed", "refunded", "all"]).optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let q = supabaseAdmin
+      .from("subscription_payments")
+      .select("*, shop:shops(name, owner_name, phone, package_id, billing_cycle, subscription_end)")
+      .order("created_at", { ascending: false });
+    if (data.status && data.status !== "all") q = q.eq("status", data.status);
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const approveSubscriptionPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ payment_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: pay, error: payErr } = await supabaseAdmin
+      .from("subscription_payments").select("*").eq("id", data.payment_id).single();
+    if (payErr || !pay) throw new Error(payErr?.message ?? "Payment not found");
+    if (pay.status !== "pending") throw new Error("এই পেমেন্ট already processed");
+
+    const { data: shop } = await supabaseAdmin
+      .from("shops").select("*, package:packages(*)").eq("id", pay.shop_id).single();
+    if (!shop) throw new Error("Shop not found");
+
+    // Determine billing cycle from linked subscription (if any) or shop default
+    let months = 1;
+    let pkgId: string | null = shop.package_id;
+    let cycle: "monthly" | "yearly" = shop.billing_cycle as any;
+    if (pay.subscription_id) {
+      const { data: sub } = await supabaseAdmin
+        .from("subscriptions").select("*").eq("id", pay.subscription_id).single();
+      if (sub) {
+        cycle = sub.billing_cycle as any;
+        pkgId = sub.package_id;
+        months = sub.billing_cycle === "yearly" ? 12 : 1;
+      }
+    } else {
+      months = cycle === "yearly" ? 12 : 1;
+    }
+
+    // Extend from max(now, current end)
+    const base = shop.subscription_end && new Date(shop.subscription_end) > new Date()
+      ? new Date(shop.subscription_end) : new Date();
+    const start = new Date();
+    base.setMonth(base.getMonth() + months);
+
+    await supabaseAdmin.from("shops").update({
+      status: "active",
+      subscription_end: base.toISOString(),
+      subscription_start: shop.subscription_start ?? start.toISOString(),
+      package_id: pkgId,
+      billing_cycle: cycle,
+    }).eq("id", shop.id);
+
+    await supabaseAdmin.from("subscription_payments").update({
+      status: "success",
+      paid_at: new Date().toISOString(),
+    }).eq("id", pay.id);
+
+    if (pay.subscription_id) {
+      await supabaseAdmin.from("subscriptions").update({
+        status: "active",
+        ends_at: base.toISOString(),
+      }).eq("id", pay.subscription_id);
+    } else {
+      await supabaseAdmin.from("subscriptions").insert({
+        shop_id: shop.id,
+        package_id: pkgId!,
+        billing_cycle: cycle,
+        amount: pay.amount,
+        status: "active",
+        starts_at: start.toISOString(),
+        ends_at: base.toISOString(),
+      });
+    }
+
+    return { ok: true };
+  });
+
+export const rejectSubscriptionPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ payment_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("subscription_payments").update({ status: "failed" }).eq("id", data.payment_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const syncExpiredShops = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("shops")
+      .update({ status: "expired" })
+      .lt("subscription_end", new Date().toISOString())
+      .eq("status", "active")
+      .select("id");
+    if (error) throw new Error(error.message);
+    return { updated: data?.length ?? 0 };
+  });
