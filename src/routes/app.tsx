@@ -37,6 +37,7 @@ function AppLayout() {
 
   const nav: { to: string; label: string; icon: any; exact?: boolean }[] = [
     { to: "/app", label: "ড্যাশবোর্ড", icon: LayoutDashboard, exact: true },
+    { to: "/app/subscription", label: "সাবস্ক্রিপশন", icon: CreditCard },
   ];
 
   return (
