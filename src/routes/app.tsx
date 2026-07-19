@@ -45,6 +45,7 @@ function AppLayout() {
     { to: "/app/purchases", label: "ক্রয়", icon: ShoppingCart },
     { to: "/app/customers", label: "কাস্টমার", icon: Users },
     { to: "/app/sales", label: "বিক্রয়", icon: Receipt },
+    { to: "/app/installments", label: "কিস্তি", icon: CalendarClock },
     { to: "/app/subscription", label: "সাবস্ক্রিপশন", icon: CreditCard },
   ];
 
