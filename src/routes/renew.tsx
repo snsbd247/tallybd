@@ -22,6 +22,7 @@ function RenewPage() {
   const fn = useServerFn(getMyShop);
   const pkgFn = useServerFn(listPackages);
   const submitFn = useServerFn(submitRenewalPayment);
+  const bkashFn = useServerFn(initiateBkashPayment);
 
   const { data } = useQuery({ queryKey: ["my-shop"], queryFn: () => fn(), enabled: !!session });
   const pkgQ = useQuery({ queryKey: ["packages"], queryFn: () => pkgFn(), enabled: !!session });
