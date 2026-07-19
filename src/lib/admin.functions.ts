@@ -127,7 +127,20 @@ export const createShop = createServerFn({ method: "POST" })
       ends_at: end.toISOString(),
     });
 
-    // 7) TODO: send SMS (Phase 3)
+    // 7) Send account created SMS (non-blocking)
+    try {
+      const { sendTemplateSMS } = await import("./sms.server");
+      await sendTemplateSMS("account_created", data.phone, {
+        shop_name: data.name,
+        owner: data.owner_name,
+        phone: data.phone,
+        password: data.password,
+        package: pkg?.name ?? "",
+        end_date: end.toLocaleDateString("bn-BD"),
+      }, { shopId: shop.id });
+    } catch (e) {
+      console.error("account_created SMS failed", e);
+    }
 
     return { shop, credentials: { email: data.email, password: data.password } };
   });
