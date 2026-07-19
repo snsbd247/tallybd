@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { ReactNode } from "react";
 
-const nav = [
+const nav: { to: string; label: string; icon: any; exact?: boolean }[] = [
   { to: "/admin", label: "ড্যাশবোর্ড", icon: LayoutDashboard, exact: true },
   { to: "/admin/shops", label: "দোকান সমূহ", icon: Store },
   { to: "/admin/packages", label: "প্যাকেজ", icon: Package },
   { to: "/admin/settings", label: "সেটিংস", icon: Settings },
-] as const;
+];
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const loc = useLocation();
