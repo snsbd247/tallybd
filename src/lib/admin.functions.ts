@@ -746,3 +746,89 @@ export const getSubscriptionInvoice = createServerFn({ method: "GET" })
       .maybeSingle();
     return { subscription: sub, brand, payment: pay };
   });
+
+// ---------- Super Admin user management ----------
+export const listAdmins = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles, error } = await supabaseAdmin
+      .from("user_roles").select("id, user_id, created_at").eq("role", "super_admin");
+    if (error) throw new Error(error.message);
+    const rows: any[] = [];
+    for (const r of roles ?? []) {
+      try {
+        const { data: u } = await supabaseAdmin.auth.admin.getUserById(r.user_id);
+        rows.push({
+          role_id: r.id,
+          user_id: r.user_id,
+          email: u.user?.email ?? null,
+          full_name: (u.user?.user_metadata as any)?.full_name ?? "",
+          created_at: u.user?.created_at ?? r.created_at,
+          last_sign_in_at: u.user?.last_sign_in_at ?? null,
+        });
+      } catch {
+        rows.push({ role_id: r.id, user_id: r.user_id, email: null, full_name: "", created_at: r.created_at, last_sign_in_at: null });
+      }
+    }
+    return rows.sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
+  });
+
+export const createAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      email: z.string().email(),
+      password: z.string().min(6),
+      full_name: z.string().min(1),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { full_name: data.full_name },
+    });
+    if (userErr || !userData.user) throw new Error(userErr?.message ?? "User create failed");
+    const { error: rErr } = await supabaseAdmin.from("user_roles").insert({
+      user_id: userData.user.id,
+      role: "super_admin",
+    });
+    if (rErr) {
+      try { await supabaseAdmin.auth.admin.deleteUser(userData.user.id); } catch {}
+      throw new Error(rErr.message);
+    }
+    return { ok: true };
+  });
+
+export const deleteAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    if (data.user_id === context.userId) throw new Error("নিজেকে মুছে ফেলা যাবে না");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Ensure at least one super admin remains
+    const { count } = await supabaseAdmin.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "super_admin");
+    if ((count ?? 0) <= 1) throw new Error("কমপক্ষে একজন সুপার এডমিন থাকতে হবে");
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id).eq("role", "super_admin");
+    try { await supabaseAdmin.auth.admin.deleteUser(data.user_id); } catch {}
+    return { ok: true };
+  });
+
+export const resetAdminPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ user_id: z.string().uuid(), password: z.string().min(6) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, { password: data.password });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
