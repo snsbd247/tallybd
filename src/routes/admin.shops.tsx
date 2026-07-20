@@ -26,6 +26,7 @@ function ShopsPage() {
   const extendFn = useServerFn(extendShopSubscription);
   const delFn = useServerFn(deleteShop);
   const [delId, setDelId] = useState<string | null>(null);
+  const [navId, setNavId] = useState<string | null>(null);
 
   const shops = useQuery({ queryKey: ["shops"], queryFn: () => listFn() });
   const pkgs = useQuery({ queryKey: ["packages"], queryFn: () => pkgsFn() });
