@@ -501,3 +501,119 @@ export const sendTestSms = createServerFn({ method: "POST" })
     return r;
   });
 
+// ---------- Shop detail / edit / delete ----------
+export const getShopDetail = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ shop_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: shop, error } = await supabaseAdmin
+      .from("shops")
+      .select("*, package:packages(*)")
+      .eq("id", data.shop_id)
+      .single();
+    if (error) throw new Error(error.message);
+    const [payments, subs, users] = await Promise.all([
+      supabaseAdmin.from("subscription_payments").select("*").eq("shop_id", data.shop_id).order("created_at", { ascending: false }).limit(20),
+      supabaseAdmin.from("subscriptions").select("*, package:packages(name)").eq("shop_id", data.shop_id).order("created_at", { ascending: false }),
+      supabaseAdmin.from("user_roles").select("user_id, role").eq("shop_id", data.shop_id),
+    ]);
+    return { shop, payments: payments.data ?? [], subscriptions: subs.data ?? [], users: users.data ?? [] };
+  });
+
+export const updateShop = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      shop_id: z.string().uuid(),
+      name: z.string().min(1),
+      owner_name: z.string().min(1),
+      phone: z.string().min(6),
+      email: z.string().email(),
+      address: z.string().optional().nullable(),
+      package_id: z.string().uuid().optional().nullable(),
+      billing_cycle: z.enum(["monthly", "yearly"]).optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { shop_id, ...update } = data;
+    const { error } = await supabaseAdmin.from("shops").update(update).eq("id", shop_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteShop = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ shop_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Remove owner auth users linked only to this shop
+    const { data: roles } = await supabaseAdmin
+      .from("user_roles").select("user_id").eq("shop_id", data.shop_id);
+    const { error } = await supabaseAdmin.from("shops").delete().eq("id", data.shop_id);
+    if (error) throw new Error(error.message);
+    for (const r of roles ?? []) {
+      try { await supabaseAdmin.auth.admin.deleteUser(r.user_id); } catch {}
+    }
+    return { ok: true };
+  });
+
+// ---------- Payment receipt ----------
+export const getPaymentReceipt = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ payment_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: pay, error } = await supabaseAdmin
+      .from("subscription_payments")
+      .select("*, shop:shops(name, owner_name, phone, email, address, package:packages(name)), subscription:subscriptions(billing_cycle, starts_at, ends_at, package:packages(name))")
+      .eq("id", data.payment_id)
+      .single();
+    if (error) throw new Error(error.message);
+    const { data: brand } = await supabaseAdmin.from("app_branding").select("*").limit(1).maybeSingle();
+    return { payment: pay, brand };
+  });
+
+// ---------- Branding ----------
+export const getBranding = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.from("app_branding").select("*").limit(1).maybeSingle();
+    return data;
+  });
+
+export const saveBranding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      site_name: z.string().min(1),
+      tagline: z.string().optional().nullable(),
+      logo_url: z.string().optional().nullable(),
+      favicon_url: z.string().optional().nullable(),
+      contact_email: z.string().optional().nullable(),
+      contact_phone: z.string().optional().nullable(),
+      contact_address: z.string().optional().nullable(),
+      facebook_url: z.string().optional().nullable(),
+      website_url: z.string().optional().nullable(),
+      footer_note: z.string().optional().nullable(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin.from("app_branding").select("id").limit(1).maybeSingle();
+    if (existing) {
+      const { error } = await supabaseAdmin.from("app_branding").update(data).eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabaseAdmin.from("app_branding").insert(data);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+

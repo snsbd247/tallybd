@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_branding: {
+        Row: {
+          contact_address: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          facebook_url: string | null
+          favicon_url: string | null
+          footer_note: string | null
+          id: string
+          logo_url: string | null
+          singleton: boolean
+          site_name: string
+          tagline: string | null
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          favicon_url?: string | null
+          footer_note?: string | null
+          id?: string
+          logo_url?: string | null
+          singleton?: boolean
+          site_name?: string
+          tagline?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          favicon_url?: string | null
+          footer_note?: string | null
+          id?: string
+          logo_url?: string | null
+          singleton?: boolean
+          site_name?: string
+          tagline?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string

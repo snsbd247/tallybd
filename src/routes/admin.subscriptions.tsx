@@ -6,6 +6,7 @@ import {
   approveSubscriptionPayment,
   rejectSubscriptionPayment,
   syncExpiredShops,
+  getPaymentReceipt,
 } from "@/lib/admin.functions";
 import { AdminShell } from "@/components/admin-shell";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Check, X, RefreshCw } from "lucide-react";
+import { Check, X, RefreshCw, Download } from "lucide-react";
+import jsPDF from "jspdf";
+
 
 export const Route = createFileRoute("/admin/subscriptions")({ component: Page });
 
@@ -25,11 +28,62 @@ function Page() {
   const approveFn = useServerFn(approveSubscriptionPayment);
   const rejectFn = useServerFn(rejectSubscriptionPayment);
   const syncFn = useServerFn(syncExpiredShops);
+  const receiptFn = useServerFn(getPaymentReceipt);
+
+  const downloadReceipt = async (paymentId: string) => {
+    try {
+      const r: any = await receiptFn({ data: { payment_id: paymentId } });
+      const { payment: p, brand } = r;
+      const doc = new jsPDF({ unit: "pt", format: "a5" });
+      const w = doc.internal.pageSize.getWidth();
+      let y = 40;
+      doc.setFontSize(16).setFont("helvetica", "bold");
+      doc.text(brand?.site_name ?? "Supershop", w / 2, y, { align: "center" });
+      y += 18;
+      doc.setFontSize(10).setFont("helvetica", "normal");
+      if (brand?.tagline) { doc.text(brand.tagline, w / 2, y, { align: "center" }); y += 14; }
+      if (brand?.contact_phone) { doc.text(`Phone: ${brand.contact_phone}`, w / 2, y, { align: "center" }); y += 12; }
+      if (brand?.contact_email) { doc.text(brand.contact_email, w / 2, y, { align: "center" }); y += 12; }
+      y += 8;
+      doc.setLineWidth(0.5).line(30, y, w - 30, y); y += 18;
+      doc.setFontSize(13).setFont("helvetica", "bold");
+      doc.text("PAYMENT RECEIPT", w / 2, y, { align: "center" }); y += 20;
+      doc.setFontSize(10).setFont("helvetica", "normal");
+      const rows: [string, string][] = [
+        ["Receipt No", p.id.slice(0, 8).toUpperCase()],
+        ["Date", new Date(p.paid_at ?? p.created_at).toLocaleString("en-US")],
+        ["Shop", p.shop?.name ?? "-"],
+        ["Owner", p.shop?.owner_name ?? "-"],
+        ["Phone", p.shop?.phone ?? "-"],
+        ["Package", p.subscription?.package?.name ?? p.shop?.package?.name ?? "-"],
+        ["Billing", p.subscription?.billing_cycle ?? "-"],
+        ["Method", p.method ?? "bKash"],
+        ["Transaction ID", p.transaction_id ?? "-"],
+        ["Status", (p.status ?? "").toUpperCase()],
+      ];
+      rows.forEach(([k, v]) => {
+        doc.setFont("helvetica", "normal").text(k, 40, y);
+        doc.setFont("helvetica", "bold").text(String(v), w - 40, y, { align: "right" });
+        y += 15;
+      });
+      y += 6;
+      doc.setLineWidth(0.5).line(30, y, w - 30, y); y += 20;
+      doc.setFontSize(14).setFont("helvetica", "bold");
+      doc.text(`Amount Paid: BDT ${Number(p.amount).toLocaleString("en-US")}`, w / 2, y, { align: "center" });
+      y += 30;
+      doc.setFontSize(9).setFont("helvetica", "italic");
+      doc.text(brand?.footer_note ?? "Thank you for your payment.", w / 2, y, { align: "center" });
+      doc.save(`receipt-${p.id.slice(0, 8)}.pdf`);
+    } catch (e: any) {
+      toast.error(e.message ?? "রিসিপ্ট তৈরি ব্যর্থ");
+    }
+  };
 
   const q = useQuery({
     queryKey: ["admin-payments", tab],
     queryFn: () => listFn({ data: { status: tab } }),
   });
+
 
   const approve = useMutation({
     mutationFn: (id: string) => approveFn({ data: { payment_id: id } }),
@@ -101,6 +155,14 @@ function Page() {
                   </Button>
                 </div>
               )}
+              {p.status === "success" && (
+                <div className="mt-4 flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => downloadReceipt(p.id)}>
+                    <Download className="mr-1 h-4 w-4" /> রিসিপ্ট ডাউনলোড
+                  </Button>
+                </div>
+              )}
+
             </Card>
           ))}
         </div>

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getGatewaySettings, saveBkashSettings, saveSmsSettings, saveSmsTemplate, sendTestSms } from "@/lib/admin.functions";
+import { getGatewaySettings, saveBkashSettings, saveSmsSettings, saveSmsTemplate, sendTestSms, getBranding, saveBranding } from "@/lib/admin.functions";
 import { AdminShell } from "@/components/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Send } from "lucide-react";
 
+
 export const Route = createFileRoute("/admin/settings")({ component: SettingsPage });
 
 function SettingsPage() {
@@ -22,19 +23,30 @@ function SettingsPage() {
   const bkashFn = useServerFn(saveBkashSettings);
   const smsFn = useServerFn(saveSmsSettings);
   const tplFn = useServerFn(saveSmsTemplate);
+  const brandGetFn = useServerFn(getBranding);
+  const brandSaveFn = useServerFn(saveBranding);
   const { data } = useQuery({ queryKey: ["gateway-settings"], queryFn: () => getFn() });
+  const brand = useQuery({ queryKey: ["branding"], queryFn: () => brandGetFn() });
 
   return (
     <AdminShell>
       <div className="p-4 sm:p-6">
       <h1 className="text-xl font-bold sm:text-2xl">সেটিংস</h1>
-      <p className="text-sm text-muted-foreground">পেমেন্ট ও SMS গেটওয়ে ব্যবস্থাপনা</p>
-      <Tabs defaultValue="bkash" className="mt-5">
+      <p className="text-sm text-muted-foreground">সাইট ব্র্যান্ডিং, পেমেন্ট ও SMS গেটওয়ে ব্যবস্থাপনা</p>
+      <Tabs defaultValue="branding" className="mt-5">
         <TabsList className="h-auto max-w-full justify-start overflow-x-auto p-1">
+          <TabsTrigger value="branding">ব্র্যান্ডিং</TabsTrigger>
           <TabsTrigger value="bkash">bKash পেমেন্ট</TabsTrigger>
           <TabsTrigger value="sms">Greenweb SMS</TabsTrigger>
           <TabsTrigger value="templates">SMS টেমপ্লেট</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="branding">
+          <BrandingForm initial={brand.data} onSave={async (v) => {
+            await brandSaveFn({ data: v }); toast.success("ব্র্যান্ডিং সেভ হয়েছে"); qc.invalidateQueries({ queryKey: ["branding"] });
+          }} />
+        </TabsContent>
+
 
         <TabsContent value="bkash">
           {data && <BkashForm initial={data.bkash} onSave={async (v) => {
@@ -150,6 +162,65 @@ function TestSmsForm() {
       <div><Label>ফোন নম্বর</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" required /></div>
       <div><Label>ম্যাসেজ</Label><Textarea rows={3} value={msg} onChange={(e) => setMsg(e.target.value)} required /></div>
       <Button type="submit" disabled={busy}><Send className="mr-2 h-4 w-4" />{busy ? "পাঠানো হচ্ছে..." : "পাঠান"}</Button>
+    </form>
+  );
+}
+
+function BrandingForm({ initial, onSave }: { initial: any; onSave: (v: any) => Promise<void> }) {
+  const [f, setF] = useState({
+    site_name: "", tagline: "", logo_url: "", favicon_url: "",
+    contact_email: "", contact_phone: "", contact_address: "",
+    facebook_url: "", website_url: "", footer_note: "",
+  });
+  useEffect(() => {
+    if (!initial) return;
+    setF({
+      site_name: initial.site_name ?? "",
+      tagline: initial.tagline ?? "",
+      logo_url: initial.logo_url ?? "",
+      favicon_url: initial.favicon_url ?? "",
+      contact_email: initial.contact_email ?? "",
+      contact_phone: initial.contact_phone ?? "",
+      contact_address: initial.contact_address ?? "",
+      facebook_url: initial.facebook_url ?? "",
+      website_url: initial.website_url ?? "",
+      footer_note: initial.footer_note ?? "",
+    });
+  }, [initial]);
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="mt-4 max-w-3xl space-y-4 rounded-lg border bg-card p-4 sm:p-6">
+      {f.logo_url && (
+        <div className="flex items-center gap-3 rounded-md border bg-muted/30 p-3">
+          <img src={f.logo_url} alt="logo preview" className="h-14 w-14 rounded object-contain" />
+          <div className="text-sm">
+            <div className="font-semibold">{f.site_name || "Supershop"}</div>
+            {f.tagline && <div className="text-xs text-muted-foreground">{f.tagline}</div>}
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div><Label>সাইটের নাম *</Label><Input required value={f.site_name} onChange={(e) => setF({ ...f, site_name: e.target.value })} /></div>
+        <div><Label>ট্যাগলাইন</Label><Input value={f.tagline} onChange={(e) => setF({ ...f, tagline: e.target.value })} /></div>
+        <div><Label>লোগো URL</Label><Input value={f.logo_url} onChange={(e) => setF({ ...f, logo_url: e.target.value })} placeholder="https://..." /></div>
+        <div><Label>ফেভিকন URL</Label><Input value={f.favicon_url} onChange={(e) => setF({ ...f, favicon_url: e.target.value })} placeholder="https://..." /></div>
+      </div>
+
+      <div className="border-t pt-4">
+        <h3 className="mb-3 font-semibold text-sm">যোগাযোগের তথ্য</h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div><Label>ইমেইল</Label><Input type="email" value={f.contact_email} onChange={(e) => setF({ ...f, contact_email: e.target.value })} /></div>
+          <div><Label>ফোন</Label><Input value={f.contact_phone} onChange={(e) => setF({ ...f, contact_phone: e.target.value })} /></div>
+          <div className="sm:col-span-2"><Label>ঠিকানা</Label><Input value={f.contact_address} onChange={(e) => setF({ ...f, contact_address: e.target.value })} /></div>
+          <div><Label>ওয়েবসাইট</Label><Input value={f.website_url} onChange={(e) => setF({ ...f, website_url: e.target.value })} /></div>
+          <div><Label>ফেসবুক</Label><Input value={f.facebook_url} onChange={(e) => setF({ ...f, facebook_url: e.target.value })} /></div>
+        </div>
+      </div>
+
+      <div><Label>ফুটার/রিসিপ্ট নোট</Label><Textarea rows={2} value={f.footer_note} onChange={(e) => setF({ ...f, footer_note: e.target.value })} placeholder="যেমন: ধন্যবাদ আমাদের সাথে থাকার জন্য।" /></div>
+
+      <Button type="submit">সেভ করুন</Button>
     </form>
   );
 }

@@ -1,17 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listShops, createShop, updateShopStatus, extendShopSubscription, listPackages } from "@/lib/admin.functions";
+import { listShops, createShop, updateShopStatus, extendShopSubscription, listPackages, deleteShop } from "@/lib/admin.functions";
 import { AdminShell } from "@/components/admin-shell";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Lock, Unlock, CalendarPlus } from "lucide-react";
+import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2 } from "lucide-react";
+
 
 export const Route = createFileRoute("/admin/shops")({ component: ShopsPage });
 
@@ -22,9 +24,12 @@ function ShopsPage() {
   const createFn = useServerFn(createShop);
   const statusFn = useServerFn(updateShopStatus);
   const extendFn = useServerFn(extendShopSubscription);
+  const delFn = useServerFn(deleteShop);
+  const [delId, setDelId] = useState<string | null>(null);
 
   const shops = useQuery({ queryKey: ["shops"], queryFn: () => listFn() });
   const pkgs = useQuery({ queryKey: ["packages"], queryFn: () => pkgsFn() });
+
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -134,12 +139,15 @@ function ShopsPage() {
                 <td className="px-4 py-3">{s.subscription_end ? new Date(s.subscription_end).toLocaleDateString("bn-BD") : "-"}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => toggleLock(s.id, s.status)}>
+                    <Button asChild size="sm" variant="ghost" title="বিস্তারিত"><Link to="/admin/shops/$shopId" params={{ shopId: s.id }}><Eye className="h-4 w-4" /></Link></Button>
+                    <Button size="sm" variant="ghost" title="১ মাস বাড়ান" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" title={s.status === "locked" ? "আনলক" : "লক"} onClick={() => toggleLock(s.id, s.status)}>
                       {s.status === "locked" ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     </Button>
+                    <Button size="sm" variant="ghost" title="ডিলিট" onClick={() => setDelId(s.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   </div>
                 </td>
+
               </tr>
             ))}
             {shops.data?.length === 0 && (
@@ -149,9 +157,31 @@ function ShopsPage() {
         </table>
       </div>
       </div>
+
+      <AlertDialog open={!!delId} onOpenChange={(o) => !o && setDelId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>দোকান ডিলিট করবেন?</AlertDialogTitle>
+            <AlertDialogDescription>এই কাজটি বাতিল করা যাবে না। দোকানের সব ডাটা মুছে যাবে।</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground"
+              onClick={async () => {
+                if (!delId) return;
+                try { await delFn({ data: { shop_id: delId } }); toast.success("ডিলিট হয়েছে"); invalidate(); }
+                catch (e: any) { toast.error(e.message); }
+                setDelId(null);
+              }}
+            >ডিলিট</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminShell>
   );
 }
+
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; variant: any }> = {
