@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2 } from "lucide-react";
+import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2, Loader2 } from "lucide-react";
 
 
 export const Route = createFileRoute("/admin/shops")({ component: ShopsPage });
