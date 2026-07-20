@@ -139,12 +139,15 @@ function ShopsPage() {
                 <td className="px-4 py-3">{s.subscription_end ? new Date(s.subscription_end).toLocaleDateString("bn-BD") : "-"}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => toggleLock(s.id, s.status)}>
+                    <Button asChild size="sm" variant="ghost" title="বিস্তারিত"><Link to="/admin/shops/$shopId" params={{ shopId: s.id }}><Eye className="h-4 w-4" /></Link></Button>
+                    <Button size="sm" variant="ghost" title="১ মাস বাড়ান" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" title={s.status === "locked" ? "আনলক" : "লক"} onClick={() => toggleLock(s.id, s.status)}>
                       {s.status === "locked" ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     </Button>
+                    <Button size="sm" variant="ghost" title="ডিলিট" onClick={() => setDelId(s.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   </div>
                 </td>
+
               </tr>
             ))}
             {shops.data?.length === 0 && (
