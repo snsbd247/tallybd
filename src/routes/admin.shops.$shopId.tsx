@@ -133,9 +133,52 @@ function ShopDetail() {
   }), [q.data, qLower, search.payStatus]);
   const filteredUsers = useMemo(() => (q.data?.users ?? []).filter((u: any) => match(u.email) || match(u.role)), [q.data, qLower]);
 
-  if (q.isLoading) return <AdminShell><div className="p-6">লোড হচ্ছে...</div></AdminShell>;
-  if (q.error) return <AdminShell><div className="p-6 text-destructive">{(q.error as Error).message}</div></AdminShell>;
-  if (!shop) return <AdminShell><div className="p-6">দোকান পাওয়া যায়নি</div></AdminShell>;
+  if (q.isLoading) {
+    return (
+      <AdminShell>
+        <div className="p-6 space-y-4">
+          <div className="h-8 w-64 animate-pulse rounded bg-muted" />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
+            ))}
+          </div>
+        </div>
+      </AdminShell>
+    );
+  }
+  const errMsg = q.error ? (q.error as Error).message : "";
+  const notFound = !shop || /PGRST116|No rows|not found/i.test(errMsg);
+  if (notFound) {
+    return (
+      <AdminShell>
+        <div className="flex min-h-[60vh] items-center justify-center p-6">
+          <Card className="max-w-md p-8 text-center">
+            <div className="text-6xl font-bold text-muted-foreground">404</div>
+            <h2 className="mt-3 text-xl font-semibold">দোকান পাওয়া যায়নি</h2>
+            <p className="mt-2 text-sm text-muted-foreground">শপ আইডি ভুল অথবা দোকানটি মুছে ফেলা হয়েছে।</p>
+            <Button asChild className="mt-5"><Link to="/admin/shops"><ArrowLeft className="mr-2 h-4 w-4" />দোকান তালিকায় ফিরুন</Link></Button>
+          </Card>
+        </div>
+      </AdminShell>
+    );
+  }
+  if (q.error) {
+    return (
+      <AdminShell>
+        <div className="p-6">
+          <Card className="p-6">
+            <div className="text-destructive font-semibold">লোড করতে সমস্যা হয়েছে</div>
+            <p className="mt-1 text-sm text-muted-foreground">{errMsg}</p>
+            <div className="mt-4 flex gap-2">
+              <Button size="sm" onClick={() => q.refetch()}><RefreshCw className="mr-1 h-4 w-4" />আবার চেষ্টা</Button>
+              <Button asChild size="sm" variant="outline"><Link to="/admin/shops">ফিরে যান</Link></Button>
+            </div>
+          </Card>
+        </div>
+      </AdminShell>
+    );
+  }
 
   const activeSub = q.data?.subscriptions?.find((s: any) => s.status === "active");
   const page = Math.max(1, search.page);
