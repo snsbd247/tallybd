@@ -105,14 +105,19 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </SheetContent>
           </Sheet>
           <div className="flex min-w-0 items-center gap-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-fuchsia-500">
-              <ShieldCheck className="h-4 w-4 text-white" />
-            </div>
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="h-9 w-9 shrink-0 rounded-lg object-contain bg-white p-0.5" />
+            ) : (
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-fuchsia-500">
+                <ShieldCheck className="h-4 w-4 text-white" />
+              </div>
+            )}
             <div className="min-w-0">
-              <div className="truncate text-sm font-bold">Supershop Admin</div>
+              <div className="truncate text-sm font-bold">{siteName}</div>
               <div className="truncate text-xs text-slate-300">{current?.label ?? "এডমিন প্যানেল"}</div>
             </div>
           </div>
+
         </div>
         <div className="min-w-0 flex-1 overflow-x-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">{children}</div>
       </main>
