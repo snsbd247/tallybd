@@ -155,6 +155,14 @@ function Page() {
                   </Button>
                 </div>
               )}
+              {p.status === "success" && (
+                <div className="mt-4 flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => downloadReceipt(p.id)}>
+                    <Download className="mr-1 h-4 w-4" /> রিসিপ্ট ডাউনলোড
+                  </Button>
+                </div>
+              )}
+
             </Card>
           ))}
         </div>
