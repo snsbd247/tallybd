@@ -10,14 +10,12 @@ import {
 } from "@/lib/admin.functions";
 import { AdminShell } from "@/components/admin-shell";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Check, X, RefreshCw, Download } from "lucide-react";
 import jsPDF from "jspdf";
-
 
 export const Route = createFileRoute("/admin/subscriptions")({ component: Page });
 
@@ -84,7 +82,6 @@ function Page() {
     queryFn: () => listFn({ data: { status: tab } }),
   });
 
-
   const approve = useMutation({
     mutationFn: (id: string) => approveFn({ data: { payment_id: id } }),
     onSuccess: () => { toast.success("অনুমোদন হয়েছে, একাউন্ট এক্টিভ"); qc.invalidateQueries(); },
@@ -103,17 +100,17 @@ function Page() {
   return (
     <AdminShell>
       <div className="p-4 sm:p-6">
-        <div className="mb-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
           <div className="min-w-0">
             <h1 className="truncate text-xl font-bold sm:text-2xl">সাবস্ক্রিপশন পেমেন্ট</h1>
-            <p className="text-sm text-muted-foreground">দোকানদারের বিকাশ পেমেন্ট রিভিউ ও অনুমোদন করুন</p>
+            <p className="text-sm text-muted-foreground">দোকানদারের বিকাশ পেমেন্ট রিভিউ ও অনুমোদন</p>
           </div>
           <Button className="shrink-0" variant="outline" onClick={() => sync.mutate()} disabled={sync.isPending}>
             <RefreshCw className="mr-2 h-4 w-4" /> মেয়াদ শেষ চেক
           </Button>
         </div>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="mt-4">
           <TabsList className="h-auto max-w-full justify-start overflow-x-auto p-1">
             <TabsTrigger value="pending">অপেক্ষমান</TabsTrigger>
             <TabsTrigger value="success">অনুমোদিত</TabsTrigger>
@@ -122,49 +119,62 @@ function Page() {
           </TabsList>
         </Tabs>
 
-        <div className="mt-4 space-y-3">
-          {q.data?.length === 0 && (
-            <Card className="p-8 text-center text-sm text-muted-foreground">কোন পেমেন্ট নেই</Card>
-          )}
-          {q.data?.map((p: any) => (
-            <Card key={p.id} className="p-4">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                <div className="min-w-0 space-y-1">
-                  <div className="font-semibold">{p.shop?.name} <span className="text-xs text-muted-foreground">({p.shop?.owner_name})</span></div>
-                  <div className="text-xs text-muted-foreground">📞 {p.shop?.phone}</div>
-                  <div className="text-sm">TrxID: <span className="font-mono font-medium">{p.transaction_id ?? "-"}</span></div>
-                  {p.bkash_payment_id && <div className="text-xs">bKash নম্বর: {p.bkash_payment_id}</div>}
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(p.created_at).toLocaleString("bn-BD")}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold">৳{Number(p.amount).toLocaleString("bn-BD")}</div>
-                  <Badge variant={p.status === "pending" ? "secondary" : p.status === "success" ? "default" : "destructive"} className="mt-1">
-                    {p.status === "pending" ? "অপেক্ষমান" : p.status === "success" ? "অনুমোদিত" : "বাতিল"}
-                  </Badge>
-                </div>
-              </div>
-              {p.status === "pending" && (
-                <div className="mt-4 flex gap-2">
-                  <Button size="sm" onClick={() => approve.mutate(p.id)} disabled={approve.isPending}>
-                    <Check className="mr-1 h-4 w-4" /> অনুমোদন
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => reject.mutate(p.id)} disabled={reject.isPending}>
-                    <X className="mr-1 h-4 w-4" /> বাতিল
-                  </Button>
-                </div>
+        <div className="mt-5 overflow-x-auto rounded-lg border bg-card">
+          <table className="w-full min-w-[880px] text-sm">
+            <thead className="bg-muted/50 text-left">
+              <tr>
+                <th className="px-4 py-3">দোকান</th>
+                <th className="px-4 py-3">ট্রানজেকশন</th>
+                <th className="px-4 py-3">এমাউন্ট</th>
+                <th className="px-4 py-3">স্ট্যাটাস</th>
+                <th className="px-4 py-3">তারিখ</th>
+                <th className="px-4 py-3 text-right">অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody>
+              {q.data?.map((p: any) => (
+                <tr key={p.id} className="border-t">
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{p.shop?.name}</div>
+                    <div className="text-xs text-muted-foreground">{p.shop?.owner_name} • {p.shop?.phone}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-mono text-xs">{p.transaction_id ?? "-"}</div>
+                    {p.bkash_payment_id && <div className="text-xs text-muted-foreground">bKash: {p.bkash_payment_id}</div>}
+                  </td>
+                  <td className="px-4 py-3 font-semibold">৳{Number(p.amount).toLocaleString("bn-BD")}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={p.status === "pending" ? "secondary" : p.status === "success" ? "default" : "destructive"}>
+                      {p.status === "pending" ? "অপেক্ষমান" : p.status === "success" ? "অনুমোদিত" : "বাতিল"}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(p.created_at).toLocaleString("bn-BD")}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-1">
+                      {p.status === "pending" && (
+                        <>
+                          <Button size="sm" variant="ghost" title="অনুমোদন" onClick={() => approve.mutate(p.id)} disabled={approve.isPending}>
+                            <Check className="h-4 w-4 text-emerald-600" />
+                          </Button>
+                          <Button size="sm" variant="ghost" title="বাতিল" onClick={() => reject.mutate(p.id)} disabled={reject.isPending}>
+                            <X className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </>
+                      )}
+                      {p.status === "success" && (
+                        <Button size="sm" variant="ghost" title="রিসিপ্ট" onClick={() => downloadReceipt(p.id)}>
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {q.data?.length === 0 && (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">কোন পেমেন্ট নেই</td></tr>
               )}
-              {p.status === "success" && (
-                <div className="mt-4 flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => downloadReceipt(p.id)}>
-                    <Download className="mr-1 h-4 w-4" /> রিসিপ্ট ডাউনলোড
-                  </Button>
-                </div>
-              )}
-
-            </Card>
-          ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </AdminShell>
