@@ -1,9 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useMatchRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listShops, createShop, updateShopStatus, extendShopSubscription, listPackages, deleteShop } from "@/lib/admin.functions";
 import { AdminShell } from "@/components/admin-shell";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,6 @@ function ShopsPage() {
   const extendFn = useServerFn(extendShopSubscription);
   const delFn = useServerFn(deleteShop);
   const [delId, setDelId] = useState<string | null>(null);
-  const [navId, setNavId] = useState<string | null>(null);
 
   const shops = useQuery({ queryKey: ["shops"], queryFn: () => listFn() });
   const pkgs = useQuery({ queryKey: ["packages"], queryFn: () => pkgsFn() });
@@ -39,7 +38,7 @@ function ShopsPage() {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["shops"] });
 
-  const onCreate = async (e: React.FormEvent) => {
+  const onCreate = async (e: FormEvent) => {
     e.preventDefault();
     try {
       const res = await createFn({ data: form });
@@ -138,17 +137,7 @@ function ShopsPage() {
                   <td className="px-4 py-3">{s.subscription_end ? new Date(s.subscription_end).toLocaleDateString("bn-BD") : "-"}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
-                      <Link
-                        to="/admin/shops/$shopId"
-                        params={{ shopId: s.id }}
-                        preload="intent"
-                        title="বিস্তারিত"
-                        aria-busy={navId === s.id}
-                        onClick={() => setNavId(s.id)}
-                        className={`inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent ${navId === s.id ? "pointer-events-none opacity-60" : ""}`}
-                      >
-                        {navId === s.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-                      </Link>
+                      <ShopDetailLink shopId={s.id} />
                       <Button size="sm" variant="ghost" title="১ মাস বাড়ান" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" title={s.status === "locked" ? "আনলক" : "লক"} onClick={() => toggleLock(s.id, s.status)}>
                         {s.status === "locked" ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
@@ -187,6 +176,25 @@ function ShopsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </AdminShell>
+  );
+}
+
+function ShopDetailLink({ shopId }: { shopId: string }) {
+  const matchRoute = useMatchRoute();
+  const isPending = !!matchRoute({ to: "/admin/shops/$shopId", params: { shopId }, pending: true });
+
+  return (
+    <Link
+      to="/admin/shops/$shopId"
+      params={{ shopId }}
+      preload="intent"
+      title="বিস্তারিত"
+      aria-label="দোকানের বিস্তারিত দেখুন"
+      aria-busy={isPending}
+      className={`inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent ${isPending ? "pointer-events-none opacity-60" : ""}`}
+    >
+      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+    </Link>
   );
 }
 
