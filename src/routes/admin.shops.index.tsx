@@ -25,7 +25,26 @@ function ShopsPage() {
   const statusFn = useServerFn(updateShopStatus);
   const extendFn = useServerFn(extendShopSubscription);
   const delFn = useServerFn(deleteShop);
+  const impersonateFn = useServerFn(createImpersonationToken);
   const [delId, setDelId] = useState<string | null>(null);
+  const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
+
+  const loginAsShop = async (shopId: string) => {
+    // Pre-open a tab synchronously to avoid popup blockers
+    const w = window.open("about:blank", "_blank");
+    setImpersonatingId(shopId);
+    try {
+      const { token } = await impersonateFn({ data: { shop_id: shopId } });
+      const url = `/impersonate?token=${encodeURIComponent(token)}`;
+      if (w) w.location.href = url;
+      else window.open(url, "_blank");
+    } catch (e) {
+      if (w) w.close();
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    } finally {
+      setImpersonatingId(null);
+    }
+  };
 
   const shops = useQuery({ queryKey: ["shops"], queryFn: () => listFn() });
   const pkgs = useQuery({ queryKey: ["packages"], queryFn: () => pkgsFn() });
