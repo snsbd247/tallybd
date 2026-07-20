@@ -248,24 +248,6 @@ function ShopsPage() {
   );
 }
 
-function ShopDetailLink({ shopId }: { shopId: string }) {
-  const matchRoute = useMatchRoute();
-  const isPending = !!matchRoute({ to: "/admin/shops/$shopId", params: { shopId }, pending: true });
-
-  return (
-    <Link
-      to="/admin/shops/$shopId"
-      params={{ shopId }}
-      preload="intent"
-      title="বিস্তারিত"
-      aria-label="দোকানের বিস্তারিত দেখুন"
-      aria-busy={isPending}
-      className={`inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent ${isPending ? "pointer-events-none opacity-60" : ""}`}
-    >
-      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-    </Link>
-  );
-}
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; variant: any }> = {
