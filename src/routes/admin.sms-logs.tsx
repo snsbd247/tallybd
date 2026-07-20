@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listSmsLogs } from "@/lib/admin.functions";
 import { AdminShell } from "@/components/admin-shell";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin/sms-logs")({ component: Page });
@@ -15,33 +14,48 @@ function Page() {
   return (
     <AdminShell>
       <div className="p-4 sm:p-6">
-        <h1 className="text-xl font-bold sm:text-2xl">SMS লগ</h1>
-        <p className="text-sm text-muted-foreground">সাম্প্রতিক ২০০টি SMS প্রেরণের ইতিহাস</p>
-        <div className="mt-4 space-y-2">
-          {q.data?.length === 0 && <Card className="p-8 text-center text-sm text-muted-foreground">কোন লগ নেই</Card>}
-          {q.data?.map((l: any) => (
-            <Card key={l.id} className="p-3">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
-                    <span className="font-mono">{l.recipient}</span>
-                    {l.shop?.name && <span className="text-xs text-muted-foreground">• {l.shop.name}</span>}
-                    {l.template_code && <span className="rounded bg-muted px-1.5 py-0.5 text-xs">{l.template_code}</span>}
-                  </div>
-                  <div className="mt-1 truncate text-sm">{l.message}</div>
-                  {l.response && <div className="mt-1 truncate text-xs text-muted-foreground">← {l.response}</div>}
-                </div>
-                <div className="text-right">
-                  <Badge variant={l.status === "sent" ? "default" : l.status === "failed" ? "destructive" : "secondary"}>
-                    {l.status}
-                  </Badge>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {new Date(l.created_at).toLocaleString("bn-BD")}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold sm:text-2xl">SMS লগ</h1>
+          <p className="text-sm text-muted-foreground">সাম্প্রতিক ২০০টি SMS প্রেরণের ইতিহাস</p>
+        </div>
+
+        <div className="mt-5 overflow-x-auto rounded-lg border bg-card">
+          <table className="w-full min-w-[880px] text-sm">
+            <thead className="bg-muted/50 text-left">
+              <tr>
+                <th className="px-4 py-3">প্রাপক</th>
+                <th className="px-4 py-3">দোকান</th>
+                <th className="px-4 py-3">টেমপ্লেট</th>
+                <th className="px-4 py-3">মেসেজ</th>
+                <th className="px-4 py-3">স্ট্যাটাস</th>
+                <th className="px-4 py-3">তারিখ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {q.data?.map((l: any) => (
+                <tr key={l.id} className="border-t align-top">
+                  <td className="px-4 py-3 font-mono text-xs">{l.recipient}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">{l.shop?.name ?? "-"}</td>
+                  <td className="px-4 py-3">
+                    {l.template_code ? <span className="rounded bg-muted px-1.5 py-0.5 text-xs">{l.template_code}</span> : <span className="text-xs text-muted-foreground">-</span>}
+                  </td>
+                  <td className="px-4 py-3 max-w-[320px]">
+                    <div className="truncate">{l.message}</div>
+                    {l.response && <div className="mt-0.5 truncate text-xs text-muted-foreground">← {l.response}</div>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant={l.status === "sent" ? "default" : l.status === "failed" ? "destructive" : "secondary"}>
+                      {l.status}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{new Date(l.created_at).toLocaleString("bn-BD")}</td>
+                </tr>
+              ))}
+              {q.data?.length === 0 && (
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">কোন লগ নেই</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </AdminShell>
