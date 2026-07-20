@@ -17,7 +17,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useMemo, useState, type ReactNode } from "react";
-import { ArrowLeft, Pencil, Trash2, Lock, Unlock, CalendarPlus, ArrowUpCircle, KeyRound, UserX, Search, Inbox, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Lock, Unlock, CalendarPlus, ArrowUpCircle, KeyRound, UserX, Search, Inbox, RefreshCw, ChevronLeft, ChevronRight, LogIn, Loader2 } from "lucide-react";
+import { createImpersonationToken } from "@/lib/impersonation.functions";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
@@ -47,6 +48,20 @@ function ShopDetail() {
   const getFn = useServerFn(getShopDetail);
   const updateFn = useServerFn(updateShop);
   const deleteFn = useServerFn(deleteShop);
+  const impersonateFn = useServerFn(createImpersonationToken);
+  const [impersonating, setImpersonating] = useState(false);
+  const loginAsShop = async () => {
+    const w = window.open("about:blank", "_blank");
+    setImpersonating(true);
+    try {
+      const { token } = await impersonateFn({ data: { shop_id: shopId } });
+      const url = `/impersonate?token=${encodeURIComponent(token)}`;
+      if (w) w.location.href = url; else window.open(url, "_blank");
+    } catch (e) {
+      if (w) w.close();
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    } finally { setImpersonating(false); }
+  };
   const pkgsFn = useServerFn(listPackages);
   const statusFn = useServerFn(updateShopStatus);
   const extendFn = useServerFn(extendShopSubscription);
@@ -198,6 +213,10 @@ function ShopDetail() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button size="sm" className="bg-gradient-to-r from-rose-500 to-orange-500 text-white hover:from-rose-600 hover:to-orange-600" onClick={loginAsShop} disabled={impersonating}>
+              {impersonating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <LogIn className="mr-1 h-4 w-4" />}
+              শপ হিসেবে লগইন
+            </Button>
             <Button size="sm" variant="outline" onClick={() => q.refetch()} disabled={q.isFetching}>
               <RefreshCw className={`mr-1 h-4 w-4 ${q.isFetching ? "animate-spin" : ""}`} />রিফ্রেশ
             </Button>

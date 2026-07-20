@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RenewRouteImport } from './routes/renew'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ImpersonateRouteImport } from './routes/impersonate'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -51,6 +52,11 @@ const RenewRoute = RenewRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpersonateRoute = ImpersonateRouteImport.update({
+  id: '/impersonate',
+  path: '/impersonate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
+  '/impersonate': typeof ImpersonateRoute
   '/login': typeof LoginRoute
   '/renew': typeof RenewRoute
   '/admin/login': typeof AdminLoginRoute
@@ -247,6 +254,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/impersonate': typeof ImpersonateRoute
   '/login': typeof LoginRoute
   '/renew': typeof RenewRoute
   '/admin/login': typeof AdminLoginRoute
@@ -282,6 +290,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
+  '/impersonate': typeof ImpersonateRoute
   '/login': typeof LoginRoute
   '/renew': typeof RenewRoute
   '/admin/login': typeof AdminLoginRoute
@@ -319,6 +328,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/app'
+    | '/impersonate'
     | '/login'
     | '/renew'
     | '/admin/login'
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/impersonate'
     | '/login'
     | '/renew'
     | '/admin/login'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/app'
+    | '/impersonate'
     | '/login'
     | '/renew'
     | '/admin/login'
@@ -422,6 +434,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
+  ImpersonateRoute: typeof ImpersonateRoute
   LoginRoute: typeof LoginRoute
   RenewRoute: typeof RenewRoute
   ApiPublicBkashCallbackRoute: typeof ApiPublicBkashCallbackRoute
@@ -442,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/impersonate': {
+      id: '/impersonate'
+      path: '/impersonate'
+      fullPath: '/impersonate'
+      preLoaderRoute: typeof ImpersonateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -746,6 +766,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
+  ImpersonateRoute: ImpersonateRoute,
   LoginRoute: LoginRoute,
   RenewRoute: RenewRoute,
   ApiPublicBkashCallbackRoute: ApiPublicBkashCallbackRoute,

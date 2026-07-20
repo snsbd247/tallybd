@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { LayoutDashboard, Store, LogOut, CreditCard, Package, Tag, Ruler, Boxes, Truck, ShoppingCart, Users, Receipt, CalendarClock, BarChart3, Bell, Menu, Sparkles } from "lucide-react";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 
 export const Route = createFileRoute("/app")({ ssr: false, component: AppLayout });
 
@@ -105,6 +106,8 @@ function AppLayout() {
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col bg-gradient-to-br from-slate-50 via-sky-50/40 to-emerald-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+        <ImpersonationBanner />
+
         <div className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b bg-card/80 backdrop-blur px-3 py-2.5 md:px-6">
           <div className="flex min-w-0 items-center gap-2">
             {/* Mobile menu trigger */}

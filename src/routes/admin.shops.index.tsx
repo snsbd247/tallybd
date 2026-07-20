@@ -2,6 +2,7 @@ import { createFileRoute, Link, useMatchRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listShops, createShop, updateShopStatus, extendShopSubscription, listPackages, deleteShop } from "@/lib/admin.functions";
+import { createImpersonationToken } from "@/lib/impersonation.functions";
 import { AdminShell } from "@/components/admin-shell";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2, Loader2 } from "lucide-react";
+import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2, Loader2, LogIn } from "lucide-react";
 
 export const Route = createFileRoute("/admin/shops/")({ component: ShopsPage });
 
@@ -24,7 +25,26 @@ function ShopsPage() {
   const statusFn = useServerFn(updateShopStatus);
   const extendFn = useServerFn(extendShopSubscription);
   const delFn = useServerFn(deleteShop);
+  const impersonateFn = useServerFn(createImpersonationToken);
   const [delId, setDelId] = useState<string | null>(null);
+  const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
+
+  const loginAsShop = async (shopId: string) => {
+    // Pre-open a tab synchronously to avoid popup blockers
+    const w = window.open("about:blank", "_blank");
+    setImpersonatingId(shopId);
+    try {
+      const { token } = await impersonateFn({ data: { shop_id: shopId } });
+      const url = `/impersonate?token=${encodeURIComponent(token)}`;
+      if (w) w.location.href = url;
+      else window.open(url, "_blank");
+    } catch (e) {
+      if (w) w.close();
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    } finally {
+      setImpersonatingId(null);
+    }
+  };
 
   const shops = useQuery({ queryKey: ["shops"], queryFn: () => listFn() });
   const pkgs = useQuery({ queryKey: ["packages"], queryFn: () => pkgsFn() });
@@ -138,6 +158,17 @@ function ShopsPage() {
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
                       <ShopDetailLink shopId={s.id} />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        title="শপ হিসেবে লগইন করুন"
+                        onClick={() => loginAsShop(s.id)}
+                        disabled={impersonatingId === s.id}
+                      >
+                        {impersonatingId === s.id
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <LogIn className="h-4 w-4 text-primary" />}
+                      </Button>
                       <Button size="sm" variant="ghost" title="১ মাস বাড়ান" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" title={s.status === "locked" ? "আনলক" : "লক"} onClick={() => toggleLock(s.id, s.status)}>
                         {s.status === "locked" ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}

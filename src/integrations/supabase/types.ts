@@ -217,6 +217,88 @@ export type Database = {
           },
         ]
       }
+      impersonation_audit: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          id: string
+          ip: string | null
+          shop_id: string
+          target_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          shop_id: string
+          target_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          shop_id?: string
+          target_user_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impersonation_audit_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      impersonation_tokens: {
+        Row: {
+          admin_user_id: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          shop_id: string
+          target_user_id: string
+          token: string
+        }
+        Insert: {
+          admin_user_id: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          shop_id: string
+          target_user_id: string
+          token: string
+        }
+        Update: {
+          admin_user_id?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          shop_id?: string
+          target_user_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impersonation_tokens_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       installment_schedules: {
         Row: {
           amount: number
