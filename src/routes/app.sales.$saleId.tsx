@@ -1,16 +1,14 @@
-import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useParams, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getSale } from "@/lib/sales.functions";
 import { getMyShop } from "@/lib/shop.functions";
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft, FileDown } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { Printer, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/app/sales/$saleId")({ component: InvoicePage });
 
-const fmt = (n: number) => `৳${Number(n || 0).toLocaleString("bn-BD", { maximumFractionDigits: 2 })}`;
+const fmt = (n: number) => Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 2 });
 const typeLabel: Record<string, string> = { cash: "নগদ", due: "বাকি", installment: "কিস্তি" };
 
 function InvoicePage() {
@@ -22,179 +20,104 @@ function InvoicePage() {
   const q = useQuery({ queryKey: ["sale", saleId], queryFn: () => saleFn({ data: { id: saleId } }) });
   const shopQ = useQuery({ queryKey: ["my-shop"], queryFn: () => shopFn() });
 
-  const sale = q.data?.sale;
-  const items = q.data?.items ?? [];
-  const installments = q.data?.installments ?? [];
-  const shop = shopQ.data?.shop;
-
-  const downloadPdf = () => {
-    if (!sale) return;
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    doc.setFontSize(16);
-    doc.text(shop?.name ?? "Invoice", 40, 40);
-    doc.setFontSize(10);
-    doc.setTextColor(120);
-    if (shop?.address) doc.text(shop.address, 40, 56);
-    if (shop?.phone) doc.text(`Phone: ${shop.phone}`, 40, 70);
-    doc.setTextColor(0);
-    doc.setFontSize(12);
-    doc.text(`Invoice: ${sale.invoice_no ?? sale.id.slice(0, 8)}`, 40, 100);
-    doc.text(`Date: ${sale.sale_date}`, 40, 116);
-    doc.text(`Customer: ${sale.customer?.name ?? "Walk-in"}`, 300, 100);
-    doc.text(`Type: ${typeLabel[sale.sale_type] ?? sale.sale_type}`, 300, 116);
-
-    autoTable(doc, {
-      startY: 140,
-      head: [["#", "Item", "Qty", "Price", "Discount", "Total"]],
-      body: items.map((it: any, i: number) => [
-        i + 1,
-        it.product?.name ?? "-",
-        `${it.quantity} ${it.product?.unit?.short_name ?? ""}`,
-        Number(it.unit_price).toFixed(2),
-        Number(it.discount || 0).toFixed(2),
-        Number(it.line_total).toFixed(2),
-      ]),
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [30, 41, 59] },
-    });
-
-    const finalY = (doc as any).lastAutoTable.finalY + 20;
-    doc.setFontSize(11);
-    doc.text(`Subtotal: ${Number(sale.subtotal).toFixed(2)}`, 380, finalY);
-    doc.text(`Discount: ${Number(sale.discount).toFixed(2)}`, 380, finalY + 16);
-    doc.setFontSize(13);
-    doc.text(`Total: ${Number(sale.total).toFixed(2)}`, 380, finalY + 36);
-    doc.setFontSize(11);
-    doc.text(`Paid: ${Number(sale.paid).toFixed(2)}`, 380, finalY + 54);
-    doc.text(`Due: ${Number(sale.due).toFixed(2)}`, 380, finalY + 70);
-
-    doc.save(`invoice-${sale.invoice_no ?? sale.id.slice(0, 8)}.pdf`);
-  };
+  const sale: any = q.data?.sale;
+  const items: any[] = q.data?.items ?? [];
+  const installments: any[] = q.data?.installments ?? [];
+  const shop: any = shopQ.data?.shop;
 
   if (q.isLoading) return <div className="p-4 text-muted-foreground sm:p-6">লোড হচ্ছে...</div>;
   if (!sale) return <div className="p-4 sm:p-6">ইনভয়েস পাওয়া যায়নি</div>;
 
+  const line = "--------------------------------";
+
   return (
-    <div className="p-4 sm:p-6">
-      <div className="mb-4 grid grid-cols-[auto_auto] items-center justify-between gap-2 print:hidden">
+    <div className="min-h-screen bg-muted/40 py-4 print:bg-white print:py-0">
+      <div className="mx-auto mb-3 flex max-w-[302px] items-center justify-between gap-2 print:hidden">
         <Button variant="ghost" size="sm" onClick={() => nav({ to: "/app/sales" })}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> ফিরে যান
+          <ArrowLeft className="mr-1 h-4 w-4" /> ফিরে
         </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={downloadPdf}><FileDown className="mr-2 h-4 w-4" /> PDF</Button>
-          <Button size="sm" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> প্রিন্ট</Button>
-        </div>
+        <Button size="sm" onClick={() => window.print()}>
+          <Printer className="mr-1 h-4 w-4" /> প্রিন্ট
+        </Button>
       </div>
 
-      <div id="invoice-print" className="mx-auto max-w-3xl overflow-x-auto rounded-xl border bg-card p-4 shadow-sm print:border-0 print:p-8 print:shadow-none sm:p-8">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border-b pb-4">
-          <div className="min-w-0">
-            <h1 className="truncate text-xl font-bold sm:text-2xl">{shop?.name}</h1>
-            {shop?.address && <p className="text-sm text-muted-foreground">{shop.address}</p>}
-            {shop?.phone && <p className="text-sm text-muted-foreground">ফোন: {shop.phone}</p>}
-          </div>
-          <div className="text-right">
-            <div className="text-lg font-semibold">ইনভয়েস</div>
-            <div className="text-sm">{sale.invoice_no ?? sale.id.slice(0, 8)}</div>
-            <div className="text-sm text-muted-foreground">{new Date(sale.sale_date).toLocaleDateString("bn-BD")}</div>
-          </div>
+      <div id="pos-receipt" className="mx-auto bg-white p-3 font-mono text-[12px] leading-tight text-black shadow-sm print:shadow-none">
+        <div className="text-center">
+          <div className="text-[15px] font-bold uppercase">{shop?.name ?? "Shop"}</div>
+          {shop?.address && <div className="text-[11px]">{shop.address}</div>}
+          {shop?.phone && <div>ফোন: {shop.phone}</div>}
         </div>
+        <div className="my-1 text-center">{line}</div>
+        <div className="text-center font-bold">SALES INVOICE</div>
+        <div className="my-1 text-center">{line}</div>
 
-        <div className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
-          <div>
-            <div className="text-xs uppercase text-muted-foreground">কাস্টমার</div>
-            <div className="font-semibold">{sale.customer?.name ?? "Walk-in"}</div>
-            {sale.customer?.phone && <div className="text-xs">{sale.customer.phone}</div>}
-            {sale.customer?.address && <div className="text-xs text-muted-foreground">{sale.customer.address}</div>}
-          </div>
-          <div className="text-right">
-            <div className="text-xs uppercase text-muted-foreground">ধরন</div>
-            <div className="font-semibold">{typeLabel[sale.sale_type] ?? sale.sale_type}</div>
-            {sale.payment_method && <div className="text-xs">{sale.payment_method}</div>}
-          </div>
+        <div className="flex justify-between"><span>Inv#</span><span>{sale.invoice_no ?? sale.id.slice(0, 8)}</span></div>
+        <div className="flex justify-between"><span>Date</span><span>{new Date(sale.sale_date).toLocaleString("en-GB")}</span></div>
+        <div className="flex justify-between"><span>Type</span><span>{typeLabel[sale.sale_type] ?? sale.sale_type}</span></div>
+        {sale.payment_method && <div className="flex justify-between"><span>Method</span><span>{sale.payment_method}</span></div>}
+        <div className="flex justify-between"><span>Customer</span><span className="truncate">{sale.customer?.name ?? "Walk-in"}</span></div>
+        {sale.customer?.phone && <div className="flex justify-between"><span>Phone</span><span>{sale.customer.phone}</span></div>}
+
+        <div className="my-1 text-center">{line}</div>
+
+        <div className="grid grid-cols-[1fr_auto] gap-x-2 font-bold">
+          <div>Item</div><div className="text-right">Total</div>
         </div>
+        <div className="text-center">{line}</div>
 
-        <table className="mt-6 w-full min-w-[640px] text-sm">
-          <thead className="border-b bg-muted/50 text-left">
-            <tr>
-              <th className="p-2">#</th>
-              <th className="p-2">পণ্য</th>
-              <th className="p-2 text-right">পরিমাণ</th>
-              <th className="p-2 text-right">মূল্য</th>
-              <th className="p-2 text-right">ছাড়</th>
-              <th className="p-2 text-right">মোট</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((it: any, i: number) => (
-              <tr key={it.id} className="border-b">
-                <td className="p-2">{i + 1}</td>
-                <td className="p-2">{it.product?.name ?? "-"}</td>
-                <td className="p-2 text-right">{it.quantity} {it.product?.unit?.short_name ?? ""}</td>
-                <td className="p-2 text-right">{fmt(it.unit_price)}</td>
-                <td className="p-2 text-right">{fmt(it.discount || 0)}</td>
-                <td className="p-2 text-right">{fmt(it.line_total)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="mt-4 flex justify-end">
-          <div className="w-64 space-y-1 text-sm">
-            <Row label="সাব-টোটাল" value={fmt(sale.subtotal)} />
-            <Row label="ছাড়" value={`- ${fmt(sale.discount)}`} />
-            <div className="border-t" />
-            <Row label="মোট" value={fmt(sale.total)} bold />
-            <Row label="পরিশোধ" value={fmt(sale.paid)} />
-            <Row label="বাকি" value={fmt(sale.due)} bold />
+        {items.map((it: any, i: number) => (
+          <div key={it.id} className="grid grid-cols-[1fr_auto] gap-x-2">
+            <div className="truncate">{i + 1}. {it.product?.name ?? "-"}</div>
+            <div className="text-right">{fmt(it.line_total)}</div>
+            <div className="col-span-2 text-[11px] text-neutral-700">
+              {it.quantity} {it.product?.unit?.short_name ?? ""} × {fmt(it.unit_price)}
+              {Number(it.discount || 0) > 0 && ` − ${fmt(it.discount)}`}
+            </div>
           </div>
+        ))}
+
+        <div className="my-1 text-center">{line}</div>
+
+        <div className="flex justify-between"><span>Subtotal</span><span>{fmt(sale.subtotal)}</span></div>
+        {Number(sale.discount || 0) > 0 && (
+          <div className="flex justify-between"><span>Discount</span><span>-{fmt(sale.discount)}</span></div>
+        )}
+        <div className="flex justify-between text-[14px] font-bold">
+          <span>TOTAL</span><span>BDT {fmt(sale.total)}</span>
         </div>
-
-        {installments.length > 0 && (
-          <div className="mt-6">
-            <h3 className="mb-2 font-semibold">কিস্তি সূচি</h3>
-            <table className="w-full min-w-[560px] text-sm">
-              <thead className="bg-muted/50 text-left"><tr>
-                <th className="p-2">#</th><th className="p-2">তারিখ</th>
-                <th className="p-2 text-right">পরিমাণ</th><th className="p-2 text-right">পরিশোধ</th><th className="p-2">অবস্থা</th>
-              </tr></thead>
-              <tbody>
-                {installments.map((ins: any) => (
-                  <tr key={ins.id} className="border-t">
-                    <td className="p-2">{ins.installment_no}</td>
-                    <td className="p-2">{ins.due_date}</td>
-                    <td className="p-2 text-right">{fmt(ins.amount)}</td>
-                    <td className="p-2 text-right">{fmt(ins.paid_amount || 0)}</td>
-                    <td className="p-2 capitalize">{ins.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="flex justify-between"><span>Paid</span><span>{fmt(sale.paid)}</span></div>
+        {Number(sale.due || 0) > 0 && (
+          <div className="flex justify-between font-bold"><span>Due</span><span>{fmt(sale.due)}</span></div>
         )}
 
-        <div className="mt-8 flex justify-between border-t pt-6 text-xs text-muted-foreground">
-          <div>ধন্যবাদ, আবার আসবেন।</div>
-          <div>স্বাক্ষর: __________________</div>
-        </div>
+        {installments.length > 0 && (
+          <>
+            <div className="my-1 text-center">{line}</div>
+            <div className="font-bold">Installments</div>
+            {installments.map((ins: any) => (
+              <div key={ins.id} className="grid grid-cols-[auto_1fr_auto] gap-x-2">
+                <div>#{ins.installment_no}</div>
+                <div className="truncate">{ins.due_date}</div>
+                <div className="text-right">{fmt(ins.amount)} <span className="text-[10px]">({ins.status})</span></div>
+              </div>
+            ))}
+          </>
+        )}
+
+        <div className="my-1 text-center">{line}</div>
+        <div className="text-center text-[11px]">ধন্যবাদ, আবার আসবেন।</div>
+        <div className="text-center text-[10px]">Printed: {new Date().toLocaleString("en-GB")}</div>
       </div>
 
       <style>{`
+        @page { size: 80mm auto; margin: 0; }
         @media print {
-          body { background: white; }
+          html, body { background: white !important; margin: 0; padding: 0; }
           aside, .print\\:hidden { display: none !important; }
-          #invoice-print { box-shadow: none; border: none; max-width: 100%; }
+          #pos-receipt { width: 80mm; box-shadow: none; padding: 4mm 3mm; }
         }
+        #pos-receipt { width: 302px; }
       `}</style>
-    </div>
-  );
-}
-
-function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
-  return (
-    <div className={`flex justify-between ${bold ? "font-bold" : ""}`}>
-      <span className="text-muted-foreground">{label}</span>
-      <span>{value}</span>
     </div>
   );
 }
