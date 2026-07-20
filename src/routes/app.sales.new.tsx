@@ -64,8 +64,6 @@ function Page() {
         name: p.name, unit: p.unit?.short_name,
       }]);
     }
-    setProductPick("");
-    setSearch("");
   };
 
   const updateLine = (i: number, patch: Partial<Line>) => {
