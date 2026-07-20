@@ -17,7 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useMemo, useState, type ReactNode } from "react";
-import { ArrowLeft, Pencil, Trash2, Lock, Unlock, CalendarPlus, ArrowUpCircle, KeyRound, UserX, Search, Inbox, RefreshCw, ChevronLeft, ChevronRight, LogIn, Loader2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Lock, Unlock, CalendarPlus, ArrowUpCircle, KeyRound, UserX, Search, Inbox, RefreshCw, ChevronLeft, ChevronRight, LogIn, Loader2, Printer, FileText } from "lucide-react";
 import { createImpersonationToken } from "@/lib/impersonation.functions";
 import { getActiveImpersonation, setActiveImpersonation, clearActiveImpersonation } from "@/lib/impersonation-window";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
@@ -353,6 +353,14 @@ function ShopDetail() {
                       <div className="flex items-center gap-3">
                         <span className="font-semibold">{bdt(s.amount)}</span>
                         <Badge variant={s.status === "active" ? "default" : "secondary"}>{s.status}</Badge>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          title="Invoice (English POS)"
+                          onClick={() => window.open(`/admin/invoices/en/${s.id}`, "_blank", "noopener")}
+                        >
+                          <FileText className="mr-1 h-3 w-3" />Invoice
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -377,13 +385,18 @@ function ShopDetail() {
               }
             />
             <PaginatedTable
-              headers={["তারিখ", "TrxID", "মেথড", "এমাউন্ট", "স্ট্যাটাস"]}
+              headers={["তারিখ", "TrxID", "মেথড", "এমাউন্ট", "স্ট্যাটাস", "রিসিপ্ট"]}
               rows={filteredPayments.map((p: any) => [
                 new Date(p.created_at).toLocaleDateString("bn-BD"),
                 <span className="font-mono text-xs">{p.transaction_id ?? "-"}</span>,
                 p.payment_method ?? "-",
                 bdt(p.amount),
                 <Badge variant={p.status === "success" ? "default" : p.status === "pending" ? "secondary" : "destructive"}>{p.status}</Badge>,
+                p.status === "success" ? (
+                  <Button size="sm" variant="outline" onClick={() => window.open(`/admin/receipts/en/${p.id}`, "_blank", "noopener")}>
+                    <Printer className="mr-1 h-3 w-3" />Receipt
+                  </Button>
+                ) : <span className="text-xs text-muted-foreground">—</span>,
               ])}
               empty="কোন পেমেন্ট নেই" page={page} onPage={(p) => setSearch({ page: p })}
             />
