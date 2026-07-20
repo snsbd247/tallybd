@@ -118,7 +118,40 @@ export const listImpersonationAudit = createServerFn({ method: "GET" })
       .from("impersonation_audit")
       .select("*, shop:shops(name)")
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(200);
     if (error) throw new Error(error.message);
-    return { rows: data ?? [] };
+    const rows = data ?? [];
+
+    // Batch-fetch profile names for admin/target users
+    const userIds = Array.from(new Set(rows.flatMap((r) => [r.admin_user_id, r.target_user_id]).filter(Boolean)));
+    const nameMap = new Map<string, { name: string; email?: string }>();
+    if (userIds.length) {
+      const { data: profiles } = await supabaseAdmin
+        .from("profiles")
+        .select("id, full_name, phone")
+        .in("id", userIds);
+      for (const p of profiles ?? []) nameMap.set(p.id, { name: p.full_name || p.phone || p.id.slice(0, 8) });
+      // Fill emails from auth for any user missing name
+      for (const uid of userIds) {
+        if (!nameMap.get(uid)?.name) {
+          const { data: u } = await supabaseAdmin.auth.admin.getUserById(uid);
+          const email = u?.user?.email;
+          nameMap.set(uid, { name: email ?? uid.slice(0, 8), email });
+        }
+      }
+    }
+
+    return {
+      rows: rows.map((r) => ({
+        id: r.id,
+        created_at: r.created_at,
+        action: r.action,
+        shop_id: r.shop_id,
+        shop_name: (r as { shop?: { name?: string } | null }).shop?.name ?? "—",
+        admin_user_id: r.admin_user_id,
+        admin_name: nameMap.get(r.admin_user_id)?.name ?? r.admin_user_id.slice(0, 8),
+        target_user_id: r.target_user_id,
+        target_name: nameMap.get(r.target_user_id)?.name ?? r.target_user_id.slice(0, 8),
+      })),
+    };
   });

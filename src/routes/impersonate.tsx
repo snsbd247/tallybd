@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { redeemImpersonationToken } from "@/lib/impersonation.functions";
 import { Loader2, ShieldAlert } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/impersonate")({
   ssr: false,
@@ -32,6 +33,15 @@ function hijackAuthStorage() {
   ss.setItem("__lovable_impersonating", "1");
 }
 
+function friendlyError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("মেয়াদ") || m.includes("expire")) return "টোকেনের মেয়াদ শেষ (৬০ সেকেন্ড পার হয়েছে)। সুপার এডমিন ট্যাব থেকে আবার চেষ্টা করুন।";
+  if (m.includes("আগেই") || m.includes("consumed") || m.includes("already")) return "এই টোকেন আগে ব্যবহার হয়েছে। প্রতিটি টোকেন এক বার ব্যবহারযোগ্য — নতুন করে ইস্যু করুন।";
+  if (m.includes("অবৈধ") || m.includes("invalid")) return "অবৈধ বা ভুল টোকেন। লিঙ্কটি সম্পূর্ণ কপি হয়নি — নতুন করে চেষ্টা করুন।";
+  if (m.includes("টোকেন নেই")) return "URL-এ টোকেন পাওয়া যায়নি। সুপার এডমিন ট্যাব থেকে 'শপ হিসেবে লগইন' বাটন চাপুন।";
+  return msg;
+}
+
 function ImpersonatePage() {
   const { token } = Route.useSearch();
   const navigate = useNavigate();
@@ -58,7 +68,8 @@ function ImpersonatePage() {
         navigate({ to: "/app" });
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : "অজানা ত্রুটি";
-        setError(msg);
+        setError(friendlyError(msg));
+        toast.error(friendlyError(msg));
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,12 +83,26 @@ function ImpersonatePage() {
             <ShieldAlert className="mx-auto mb-3 h-10 w-10 text-destructive" />
             <div className="text-lg font-semibold text-destructive">ইম্পার্সোনেশন ব্যর্থ</div>
             <div className="mt-2 text-sm text-muted-foreground">{error}</div>
-            <button
-              onClick={() => window.close()}
-              className="mt-6 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            >
-              ট্যাব বন্ধ করুন
-            </button>
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                onClick={() => window.close()}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+              >
+                এই ট্যাব বন্ধ করুন
+              </button>
+              <button
+                onClick={() => { window.location.href = "/admin/shops"; }}
+                className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted"
+              >
+                সুপার এডমিন প্যানেলে ফিরুন
+              </button>
+              <button
+                onClick={() => { window.location.href = "/admin/impersonation-logs"; }}
+                className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              >
+                অডিট লগ দেখুন
+              </button>
+            </div>
           </>
         ) : (
           <>
