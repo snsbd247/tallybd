@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listShops, createShop, updateShopStatus, extendShopSubscription, listPackages, deleteShop } from "@/lib/admin.functions";
 import { createImpersonationToken } from "@/lib/impersonation.functions";
+import { getActiveImpersonation, setActiveImpersonation, clearActiveImpersonation } from "@/lib/impersonation-window";
 import { AdminShell } from "@/components/admin-shell";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
@@ -30,16 +31,30 @@ function ShopsPage() {
   const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
 
   const loginAsShop = async (shopId: string) => {
+    const existing = getActiveImpersonation();
+    if (existing) {
+      toast.warning("ইতিমধ্যে একটি ইম্পার্সোনেশন সেশন সক্রিয়। প্রথমে সেটি বন্ধ করুন।", {
+        action: {
+          label: "সেই ট্যাবে যান",
+          onClick: () => { try { existing.win.focus(); } catch { /* noop */ } },
+        },
+      });
+      return;
+    }
     // Pre-open a tab synchronously to avoid popup blockers
     const w = window.open("about:blank", "_blank");
+    if (!w) {
+      toast.error("পপআপ ব্লক হয়েছে — ব্রাউজারে পপআপ অনুমতি দিন।");
+      return;
+    }
+    setActiveImpersonation(w, shopId);
     setImpersonatingId(shopId);
     try {
       const { token } = await impersonateFn({ data: { shop_id: shopId } });
-      const url = `/impersonate?token=${encodeURIComponent(token)}`;
-      if (w) w.location.href = url;
-      else window.open(url, "_blank");
+      w.location.href = `/impersonate?token=${encodeURIComponent(token)}`;
     } catch (e) {
-      if (w) w.close();
+      w.close();
+      clearActiveImpersonation();
       toast.error(e instanceof Error ? e.message : "ব্যর্থ");
     } finally {
       setImpersonatingId(null);
