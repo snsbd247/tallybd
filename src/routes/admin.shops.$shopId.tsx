@@ -38,6 +38,7 @@ function ShopDetail() {
   const shop = q.data?.shop;
 
   const openEdit = () => {
+    if (!shop) return;
     setForm({
       shop_id: shop.id,
       name: shop.name, owner_name: shop.owner_name, phone: shop.phone,
@@ -46,6 +47,7 @@ function ShopDetail() {
     });
     setEditOpen(true);
   };
+
 
   const saveMut = useMutation({
     mutationFn: () => updateFn({ data: form }),
