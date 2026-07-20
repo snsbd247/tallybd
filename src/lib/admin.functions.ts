@@ -32,7 +32,7 @@ export const getAdminStats = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("subscription_payments")
         .select("amount")
-        .eq("status", "approved")
+        .eq("status", "success")
         .gte("created_at", monthStart.toISOString()),
     ]);
     const monthlyRevenue = (revenue.data ?? []).reduce(
