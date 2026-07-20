@@ -70,11 +70,6 @@ function ShopLogin() {
             একাউন্ট নেই? সুপার এডমিনকে যোগাযোগ করুন।
           </p>
         </div>
-        <div className="mt-4 text-center">
-          <Link to="/admin/login" className="text-xs text-muted-foreground hover:underline">
-            সুপার এডমিন লগিন
-          </Link>
-        </div>
       </div>
     </div>
   );
