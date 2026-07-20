@@ -132,8 +132,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <BrandingEffect />
       <Outlet />
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
+
 }
