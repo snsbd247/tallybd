@@ -508,18 +508,122 @@ export const getShopDetail = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const sid = data.shop_id;
+
     const { data: shop, error } = await supabaseAdmin
-      .from("shops")
-      .select("*, package:packages(*)")
-      .eq("id", data.shop_id)
-      .single();
+      .from("shops").select("*, package:packages(*)").eq("id", sid).single();
     if (error) throw new Error(error.message);
-    const [payments, subs, users] = await Promise.all([
-      supabaseAdmin.from("subscription_payments").select("*").eq("shop_id", data.shop_id).order("created_at", { ascending: false }).limit(20),
-      supabaseAdmin.from("subscriptions").select("*, package:packages(name)").eq("shop_id", data.shop_id).order("created_at", { ascending: false }),
-      supabaseAdmin.from("user_roles").select("user_id, role").eq("shop_id", data.shop_id),
+
+    const [payments, subs, roles, sales, purchases, customers, suppliers, products, custPays, supPays] = await Promise.all([
+      supabaseAdmin.from("subscription_payments").select("*").eq("shop_id", sid).order("created_at", { ascending: false }).limit(30),
+      supabaseAdmin.from("subscriptions").select("*, package:packages(name, price_monthly, price_yearly)").eq("shop_id", sid).order("created_at", { ascending: false }),
+      supabaseAdmin.from("user_roles").select("id, user_id, role, created_at").eq("shop_id", sid),
+      supabaseAdmin.from("sales").select("total, paid, due, payment_method, sale_type").eq("shop_id", sid),
+      supabaseAdmin.from("purchases").select("total, paid, due, payment_method").eq("shop_id", sid),
+      supabaseAdmin.from("customers").select("id, name, phone, current_balance").eq("shop_id", sid).order("name"),
+      supabaseAdmin.from("suppliers").select("id, name, phone, current_balance").eq("shop_id", sid).order("name"),
+      supabaseAdmin.from("products").select("id, name, sku, stock_quantity, low_stock_alert, purchase_price, selling_price, unit:units(name)").eq("shop_id", sid).order("name"),
+      supabaseAdmin.from("customer_payments").select("amount, payment_method").eq("shop_id", sid),
+      supabaseAdmin.from("supplier_payments").select("amount, payment_method").eq("shop_id", sid),
     ]);
-    return { shop, payments: payments.data ?? [], subscriptions: subs.data ?? [], users: users.data ?? [] };
+
+    const users: any[] = [];
+    for (const r of roles.data ?? []) {
+      try {
+        const { data: u } = await supabaseAdmin.auth.admin.getUserById(r.user_id);
+        users.push({ id: r.id, user_id: r.user_id, role: r.role, email: u.user?.email, created_at: u.user?.created_at ?? r.created_at });
+      } catch {
+        users.push({ id: r.id, user_id: r.user_id, role: r.role, email: null, created_at: r.created_at });
+      }
+    }
+
+    const sumBy = (rows: any[], field: string, method?: string) =>
+      (rows ?? []).filter((r) => (method ? r.payment_method === method : true))
+        .reduce((s, r) => s + Number(r[field] || 0), 0);
+
+    const totals = {
+      totalSales: sumBy(sales.data ?? [], "total"),
+      totalPurchases: sumBy(purchases.data ?? [], "total"),
+      totalDue: sumBy(sales.data ?? [], "due"),
+      totalPaidToSuppliers: sumBy(purchases.data ?? [], "paid"),
+      cashIn: sumBy(custPays.data ?? [], "amount", "cash"),
+      bkashIn: sumBy(custPays.data ?? [], "amount", "bkash"),
+      cashOut: sumBy(supPays.data ?? [], "amount", "cash"),
+      bkashOut: sumBy(supPays.data ?? [], "amount", "bkash"),
+      customersCount: (customers.data ?? []).length,
+      suppliersCount: (suppliers.data ?? []).length,
+      productsCount: (products.data ?? []).length,
+      lowStockCount: (products.data ?? []).filter((p: any) => Number(p.stock_quantity) <= Number(p.low_stock_alert || 0)).length,
+    };
+
+    return {
+      shop, payments: payments.data ?? [], subscriptions: subs.data ?? [], users,
+      customers: customers.data ?? [], suppliers: suppliers.data ?? [], products: products.data ?? [],
+      totals,
+    };
+  });
+
+export const upgradeShopPackage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      shop_id: z.string().uuid(),
+      package_id: z.string().uuid(),
+      billing_cycle: z.enum(["monthly", "yearly"]),
+      months: z.number().int().min(1).max(60).optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const months = data.months ?? (data.billing_cycle === "yearly" ? 12 : 1);
+    const { data: pkg } = await supabaseAdmin.from("packages").select("*").eq("id", data.package_id).single();
+    const amount = data.billing_cycle === "monthly" ? pkg?.price_monthly : pkg?.price_yearly;
+    const start = new Date();
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + months);
+    const { error } = await supabaseAdmin.from("shops").update({
+      package_id: data.package_id,
+      billing_cycle: data.billing_cycle,
+      status: "active",
+      subscription_start: start.toISOString(),
+      subscription_end: end.toISOString(),
+    }).eq("id", data.shop_id);
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.from("subscriptions").insert({
+      shop_id: data.shop_id,
+      package_id: data.package_id,
+      billing_cycle: data.billing_cycle,
+      amount: amount ?? 0,
+      status: "active",
+      starts_at: start.toISOString(),
+      ends_at: end.toISOString(),
+    });
+    return { ok: true };
+  });
+
+export const resetShopUserPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ user_id: z.string().uuid(), password: z.string().min(6) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user_id, { password: data.password });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const removeShopUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ user_id: z.string().uuid(), shop_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id).eq("shop_id", data.shop_id);
+    try { await supabaseAdmin.auth.admin.deleteUser(data.user_id); } catch {}
+    return { ok: true };
   });
 
 export const updateShop = createServerFn({ method: "POST" })
