@@ -20,21 +20,23 @@ export interface AuthState {
 export function useAuth(): AuthState {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<UserRoleRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
+  const [rolesLoaded, setRolesLoaded] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
     const loadRoles = async (uid: string | undefined) => {
       if (!uid) {
-        if (mounted) setRoles([]);
+        if (mounted) { setRoles([]); setRolesLoaded(true); }
         return;
       }
+      if (mounted) setRolesLoaded(false);
       const { data } = await supabase
         .from("user_roles")
         .select("role, shop_id")
         .eq("user_id", uid);
-      if (mounted) setRoles((data as UserRoleRow[]) ?? []);
+      if (mounted) { setRoles((data as UserRoleRow[]) ?? []); setRolesLoaded(true); }
     };
 
     const { data: sub } = supabase.auth.onAuthStateChange((_ev, s) => {
@@ -45,7 +47,8 @@ export function useAuth(): AuthState {
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setSession(data.session);
-      loadRoles(data.session?.user.id).finally(() => mounted && setLoading(false));
+      setSessionLoaded(true);
+      loadRoles(data.session?.user.id);
     });
 
     return () => {
@@ -56,6 +59,10 @@ export function useAuth(): AuthState {
 
   const isSuperAdmin = roles.some((r) => r.role === "super_admin");
   const primaryShopId = roles.find((r) => r.shop_id)?.shop_id ?? null;
+  // Keep "loading" true until BOTH the session and the corresponding roles
+  // for that session are fetched. Prevents a race where an authenticated
+  // user briefly appears role-less and gets redirected away.
+  const loading = !sessionLoaded || (!!session && !rolesLoaded);
 
   return { loading, session, roles, isSuperAdmin, primaryShopId };
 }
