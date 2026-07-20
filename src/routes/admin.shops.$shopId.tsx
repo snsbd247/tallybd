@@ -210,13 +210,13 @@ function ShopDetail() {
             <div className="min-w-0">
               <h1 className="truncate text-xl font-bold sm:text-2xl">{shop.name}</h1>
               <p className="text-sm text-muted-foreground">{shop.owner_name} • {shop.phone} • <StatusBadge status={shop.status} /></p>
-            <Button size="sm" variant="default" className="bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600" onClick={loginAsShop} disabled={impersonating}>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" className="bg-gradient-to-r from-rose-500 to-orange-500 text-white hover:from-rose-600 hover:to-orange-600" onClick={loginAsShop} disabled={impersonating}>
               {impersonating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <LogIn className="mr-1 h-4 w-4" />}
               শপ হিসেবে লগইন
             </Button>
-          </div>
-        </div>
-          <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={() => q.refetch()} disabled={q.isFetching}>
               <RefreshCw className={`mr-1 h-4 w-4 ${q.isFetching ? "animate-spin" : ""}`} />রিফ্রেশ
             </Button>
