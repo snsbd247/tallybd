@@ -17,7 +17,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useMemo, useState, type ReactNode } from "react";
-import { ArrowLeft, Pencil, Trash2, Lock, Unlock, CalendarPlus, ArrowUpCircle, KeyRound, UserX, Search, Inbox, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Lock, Unlock, CalendarPlus, ArrowUpCircle, KeyRound, UserX, Search, Inbox, RefreshCw, ChevronLeft, ChevronRight, LogIn, Loader2 } from "lucide-react";
+import { createImpersonationToken } from "@/lib/impersonation.functions";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
