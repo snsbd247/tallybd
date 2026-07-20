@@ -1,49 +1,53 @@
-## লক্ষ্য
-সুপার এডমিন যেকোনো শপে "Login as Shop" বাটন দিয়ে নতুন ট্যাবে সরাসরি সেই শপের প্যানেলে ঢুকতে পারবে — মূল ট্যাবে সুপার এডমিন সেশন অক্ষত থাকবে।
+## Scope
 
-## চ্যালেঞ্জ
-Supabase auth session `localStorage`-এ থাকে এবং একই origin-এ সব ট্যাব একই সেশন শেয়ার করে। তাই সরাসরি নতুন ট্যাবে অন্য user হিসেবে `signIn` করলে মূল ট্যাবের সুপার এডমিন সেশনও ওভাররাইট হয়ে যাবে। এটা এড়াতে আলাদা storage scope দরকার।
+দশটি আইটেম আছে — কিছু ছোট বাগফিক্স, কিছু নতুন ফিচার। নিচে ফেজ ভাগ করে দিচ্ছি যাতে পর্যায়ক্রমে ডেলিভার করতে পারি।
 
-## সমাধান — সংক্ষেপে
-1. এক-বার-ব্যবহারযোগ্য **impersonation token** ইস্যু করা হবে সার্ভার থেকে (super admin ভেরিফাই করে)।
-2. নতুন ট্যাব খুলবে `/impersonate?token=...` রুটে।
-3. সেই রুট একটা **আলাদা Supabase client instance** ব্যবহার করবে যার `storageKey` আলাদা (যেমন `sb-impersonation-auth`) — এতে ডিফল্ট সুপার এডমিন সেশনের সাথে সংঘর্ষ হবে না।
-4. token রিডিম করে সেই শপ ইউজারের session তৈরি হবে এবং ইম্পার্সোনেটেড ইউজার হিসেবে shop panel-এ redirect হবে।
+## Phase A — Quick fixes (ছোট, দ্রুত)
 
-## প্রযুক্তিগত বিস্তারিত
+1. **সুপার এডমিন লগিন রিডাইরেক্ট ফিক্স** — `admin.login.tsx` এ লগিন সফল হলে `/admin` এ push করবে, role check এর জন্য `useAuth` স্টেট আপডেটের অপেক্ষা করবে (বর্তমানে সম্ভবত `/` তে যাচ্ছে)।
+2. **দোকান লিস্টে ৩-ডট ড্রপডাউন মেনু** — `admin.shops.index.tsx` এ inline বাটনগুলো shadcn `DropdownMenu` দিয়ে রিপ্লেস করব (View / Edit / Impersonate / Delete)।
+7. **লগিন পেজ মর্ডান ডিজাইন** — `login.tsx` ও `admin.login.tsx` এ gradient background, glass card, ব্র্যান্ডিং লোগো, split layout।
+10. **সার্চেবল সিলেক্ট** — Product/Customer/Supplier সিলেক্ট গুলো shadcn `Command`+`Popover` (combobox) দিয়ে রিপ্লেস। POS (`app.sales.new`, `app.purchases.new`), stock adjust, customer payment — সব জায়গায়।
 
-### ডাটাবেস
-নতুন টেবিল `public.impersonation_tokens`:
-- `id uuid pk`, `token text unique`, `admin_id uuid`, `target_user_id uuid`, `shop_id uuid`
-- `expires_at timestamptz` (৬০ সেকেন্ড)
-- `consumed_at timestamptz`
-- RLS: শুধু service_role access; সব read/write server function দিয়ে
+## Phase B — English POS receipts (একই টেমপ্লেট, ৩ জায়গায় ব্যবহার)
 
-### Server functions (`src/lib/impersonation.functions.ts`)
-- `createImpersonationToken({ shopId })` — `requireSupabaseAuth` + super admin role চেক → শপের owner user খুঁজে → random token তৈরি করে insert → token রিটার্ন
-- `redeemImpersonationToken({ token })` — token ভ্যালিডেট, expired/consumed চেক, `supabaseAdmin.auth.admin.generateLink({ type: 'magiclink' })` দিয়ে target user-এর জন্য session tokens তৈরি → `access_token` + `refresh_token` রিটার্ন করবে → `consumed_at` সেট
+3+4+5. একটি English POS-style invoice/receipt কম্পোনেন্ট বানাব (80mm, `window.print()`, existing receipt-config reuse)। এটা ব্যবহার হবে:
+- Shop detail → Subscription history ট্যাব → "Download Invoice" বাটন
+- Shop detail → Payments ট্যাব → "Download Receipt" বাটন
+- `admin.subscriptions.tsx` (Subscription payments পেজ) → row-এ "Receipt" বাটন
 
-### ক্লায়েন্ট
-- `src/integrations/supabase/impersonation-client.ts` — আলাদা `storageKey: 'sb-impersonation-auth'` সহ নতুন `createClient` instance
-- নতুন রুট `src/routes/impersonate.tsx` (public, ssr:false):
-  - URL থেকে token পড়ে → `redeemImpersonationToken` কল → পাওয়া tokens দিয়ে impersonation client-এ `setSession()` → `/shop` এ navigate
-  - এই ট্যাবের সব shop panel code impersonation client ব্যবহার করবে (context provider দিয়ে সুইচ)
-- Shop panel সম্পূর্ণ ভিন্ন origin না হওয়ায়, ট্যাব-স্কোপড সেশন রাখার জন্য `impersonation-client` এ `storage: sessionStorage` ব্যবহার করা হবে — এতে নতুন ট্যাব বন্ধ করলে সেশন শেষ, এবং মূল ট্যাবের `localStorage`-এর super admin সেশনে কোনো প্রভাব নেই
+সব text ইংরেজি — বর্তমান বাংলা রিসিপ্ট থেকে আলাদা রুট (`/admin/receipts/en/$paymentId`, `/admin/invoices/en/$subscriptionId`)।
 
-### UI
-- `src/routes/admin.shops.$shopId.tsx` এবং শপ লিস্টে "Login as Shop" বাটন
-- ক্লিক → `createImpersonationToken` → `window.open('/impersonate?token=...', '_blank')`
-- সব ইম্পার্সোনেশন `sms_logs`-এর মতো একটা `impersonation_audit` টেবিলে log হবে (কে, কখন, কোন শপ)
+## Phase C — Admin user management
 
-### সিকিউরিটি
-- Token: 32-byte random, one-time use, 60s expiry
-- শুধু super admin (`has_role(uid, 'super_admin')`) create করতে পারবে
-- Shop panel-এ impersonation active হলে ছোট banner: "🔴 Impersonating {shop_name} — Close tab to exit"
-- Audit log সুপার এডমিন সেটিংসে দেখা যাবে
+6. **সুপার এডমিন ইউজার ম্যানেজমেন্ট** — নতুন রুট `admin.users.tsx`:
+- ইমেইল+পাসওয়ার্ড দিয়ে নতুন সুপার এডমিন তৈরি (`supabaseAdmin.auth.admin.createUser` + `user_roles` insert)
+- বর্তমান super_admin দের লিস্ট, রোল রিভোক
+- Server function `createSuperAdmin`, `listSuperAdmins`, `revokeSuperAdmin` — self-revoke ব্লক, শেষ super_admin ব্লক।
 
-## ফাইল পরিবর্তন
-- **নতুন migration**: `impersonation_tokens`, `impersonation_audit` টেবিল + GRANTs + RLS
-- **নতুন**: `src/lib/impersonation.functions.ts`, `src/integrations/supabase/impersonation-client.ts`, `src/routes/impersonate.tsx`, `ImpersonationBanner` কম্পোনেন্ট
-- **এডিট**: `src/routes/admin.shops.index.tsx` ও `admin.shops.$shopId.tsx` (বাটন), শপ প্যানেল shell (banner + client switching)
+## Phase D — Rich shop dashboard
 
-অনুমতি দিলে ইমপ্লিমেন্ট শুরু করব।
+8. **শপ ড্যাশবোর্ড ইনফরমেটিভ** — `app.index.tsx`:
+- আজকের বিক্রয়/ক্রয়/লাভ, cash/due/bkash breakdown
+- মোট বকেয়া (কাস্টমার/সাপ্লায়ার), overdue installments count
+- Low stock alerts (top 5)
+- Recent sales/purchases (5টি)
+- ৭ দিনের বিক্রয় mini chart (recharts)
+- সাবস্ক্রিপশন expiry countdown
+- Quick action tiles
+
+নতুন aggregate server function `getShopDashboard`।
+
+## Phase E — Product stock movement view
+
+9. **পণ্যের সম্পূর্ণ স্টক মুভমেন্ট পেজ** — নতুন রুট `app.products.$productId.tsx`:
+- Header: current stock, purchase/sale price, total in/out/adjust
+- Timeline table: date, type (purchase/sale/adjustment/return), quantity ±, reference (invoice link), note
+- Row click / "ডিটেইল" button `app.products.tsx` থেকে navigate
+- Server function `getProductMovements(product_id)`।
+
+## Delivery order
+
+আমি এক টার্নে সব ঠেলবো না — টার্ন-১ এ Phase A + B (bug/UX fixes, receipts) দিচ্ছি, তারপর টার্ন-২ এ C+D+E। এটাই সেফ, রিভিউ সহজ।
+
+**আপনি কনফার্ম করলে Phase A + B দিয়ে শুরু করছি।** অন্য কোনো order চাইলে বলুন (যেমন "সবই একসাথে দিন" — সেক্ষেত্রে বড় ডিফ হবে)।
