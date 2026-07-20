@@ -157,9 +157,31 @@ function ShopsPage() {
         </table>
       </div>
       </div>
+
+      <AlertDialog open={!!delId} onOpenChange={(o) => !o && setDelId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>দোকান ডিলিট করবেন?</AlertDialogTitle>
+            <AlertDialogDescription>এই কাজটি বাতিল করা যাবে না। দোকানের সব ডাটা মুছে যাবে।</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground"
+              onClick={async () => {
+                if (!delId) return;
+                try { await delFn({ data: { shop_id: delId } }); toast.success("ডিলিট হয়েছে"); invalidate(); }
+                catch (e: any) { toast.error(e.message); }
+                setDelId(null);
+              }}
+            >ডিলিট</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminShell>
   );
 }
+
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; variant: any }> = {
