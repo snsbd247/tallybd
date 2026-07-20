@@ -116,8 +116,8 @@ function Page() {
                         </>
                       )}
                       {p.status === "success" && (
-                        <Button size="sm" variant="ghost" title="রিসিপ্ট" onClick={() => downloadReceipt(p.id)}>
-                          <Download className="h-4 w-4" />
+                        <Button size="sm" variant="ghost" title="POS রিসিপ্ট প্রিন্ট" onClick={() => openReceipt(p.id)}>
+                          <Printer className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
