@@ -33,6 +33,7 @@ import { Route as AdminSetupRouteImport } from './routes/admin.setup'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminImpersonationLogsRouteImport } from './routes/admin.impersonation-logs'
 import { Route as AppSalesIndexRouteImport } from './routes/app.sales.index'
 import { Route as AppPurchasesIndexRouteImport } from './routes/app.purchases.index'
 import { Route as AdminShopsIndexRouteImport } from './routes/admin.shops.index'
@@ -164,6 +165,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminImpersonationLogsRoute = AdminImpersonationLogsRouteImport.update({
+  id: '/impersonation-logs',
+  path: '/impersonation-logs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppSalesIndexRoute = AppSalesIndexRouteImport.update({
   id: '/sales/',
   path: '/sales/',
@@ -223,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/impersonate': typeof ImpersonateRoute
   '/login': typeof LoginRoute
   '/renew': typeof RenewRoute
+  '/admin/impersonation-logs': typeof AdminImpersonationLogsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -257,6 +264,7 @@ export interface FileRoutesByTo {
   '/impersonate': typeof ImpersonateRoute
   '/login': typeof LoginRoute
   '/renew': typeof RenewRoute
+  '/admin/impersonation-logs': typeof AdminImpersonationLogsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -293,6 +301,7 @@ export interface FileRoutesById {
   '/impersonate': typeof ImpersonateRoute
   '/login': typeof LoginRoute
   '/renew': typeof RenewRoute
+  '/admin/impersonation-logs': typeof AdminImpersonationLogsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -331,6 +340,7 @@ export interface FileRouteTypes {
     | '/impersonate'
     | '/login'
     | '/renew'
+    | '/admin/impersonation-logs'
     | '/admin/login'
     | '/admin/packages'
     | '/admin/settings'
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/impersonate'
     | '/login'
     | '/renew'
+    | '/admin/impersonation-logs'
     | '/admin/login'
     | '/admin/packages'
     | '/admin/settings'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/impersonate'
     | '/login'
     | '/renew'
+    | '/admin/impersonation-logs'
     | '/admin/login'
     | '/admin/packages'
     | '/admin/settings'
@@ -611,6 +623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/impersonation-logs': {
+      id: '/admin/impersonation-logs'
+      path: '/impersonation-logs'
+      fullPath: '/admin/impersonation-logs'
+      preLoaderRoute: typeof AdminImpersonationLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/sales/': {
       id: '/app/sales/'
       path: '/sales'
@@ -699,6 +718,7 @@ const AdminShopsRouteWithChildren = AdminShopsRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
+  AdminImpersonationLogsRoute: typeof AdminImpersonationLogsRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -711,6 +731,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminImpersonationLogsRoute: AdminImpersonationLogsRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminPackagesRoute: AdminPackagesRoute,
   AdminSettingsRoute: AdminSettingsRoute,

@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useMemo, useState, type ReactNode } from "react";
 import { ArrowLeft, Pencil, Trash2, Lock, Unlock, CalendarPlus, ArrowUpCircle, KeyRound, UserX, Search, Inbox, RefreshCw, ChevronLeft, ChevronRight, LogIn, Loader2 } from "lucide-react";
 import { createImpersonationToken } from "@/lib/impersonation.functions";
+import { getActiveImpersonation, setActiveImpersonation, clearActiveImpersonation } from "@/lib/impersonation-window";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
@@ -51,14 +52,26 @@ function ShopDetail() {
   const impersonateFn = useServerFn(createImpersonationToken);
   const [impersonating, setImpersonating] = useState(false);
   const loginAsShop = async () => {
+    const existing = getActiveImpersonation();
+    if (existing) {
+      toast.warning("ইতিমধ্যে একটি ইম্পার্সোনেশন সেশন সক্রিয়। প্রথমে সেটি বন্ধ করুন।", {
+        action: {
+          label: "সেই ট্যাবে যান",
+          onClick: () => { try { existing.win.focus(); } catch { /* noop */ } },
+        },
+      });
+      return;
+    }
     const w = window.open("about:blank", "_blank");
+    if (!w) { toast.error("পপআপ ব্লক হয়েছে — ব্রাউজারে পপআপ অনুমতি দিন।"); return; }
+    setActiveImpersonation(w, shopId);
     setImpersonating(true);
     try {
       const { token } = await impersonateFn({ data: { shop_id: shopId } });
-      const url = `/impersonate?token=${encodeURIComponent(token)}`;
-      if (w) w.location.href = url; else window.open(url, "_blank");
+      w.location.href = `/impersonate?token=${encodeURIComponent(token)}`;
     } catch (e) {
-      if (w) w.close();
+      w.close();
+      clearActiveImpersonation();
       toast.error(e instanceof Error ? e.message : "ব্যর্থ");
     } finally { setImpersonating(false); }
   };
