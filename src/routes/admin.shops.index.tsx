@@ -158,6 +158,17 @@ function ShopsPage() {
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
                       <ShopDetailLink shopId={s.id} />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        title="শপ হিসেবে লগইন করুন"
+                        onClick={() => loginAsShop(s.id)}
+                        disabled={impersonatingId === s.id}
+                      >
+                        {impersonatingId === s.id
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <LogIn className="h-4 w-4 text-primary" />}
+                      </Button>
                       <Button size="sm" variant="ghost" title="১ মাস বাড়ান" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" title={s.status === "locked" ? "আনলক" : "লক"} onClick={() => toggleLock(s.id, s.status)}>
                         {s.status === "locked" ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
