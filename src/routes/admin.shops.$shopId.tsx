@@ -40,6 +40,7 @@ const PAGE_SIZE = 10;
 
 function ShopDetail() {
   const { shopId } = Route.useParams();
+  const isValidShopId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(shopId);
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/admin/shops/$shopId" });
   const qc = useQueryClient();
@@ -56,6 +57,7 @@ function ShopDetail() {
   const q = useQuery({
     queryKey: ["shop-detail", shopId],
     queryFn: () => getFn({ data: { shop_id: shopId } }),
+    enabled: isValidShopId,
     refetchOnWindowFocus: true,
     refetchInterval: 60_000,
   });
@@ -148,7 +150,7 @@ function ShopDetail() {
     );
   }
   const errMsg = q.error ? (q.error as Error).message : "";
-  const notFound = !shop || /PGRST116|No rows|not found/i.test(errMsg);
+  const notFound = !isValidShopId || !shop || /PGRST116|No rows|not found|invalid uuid/i.test(errMsg);
   if (notFound) {
     return (
       <AdminShell>
