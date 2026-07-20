@@ -14,6 +14,7 @@ export type Branding = {
   facebook_url?: string | null;
   website_url?: string | null;
   footer_note?: string | null;
+  updated_at?: string | null;
 };
 
 export function useBranding() {
@@ -31,27 +32,34 @@ export function useBranding() {
     logoUrl: brand?.logo_url || "",
     faviconUrl: brand?.favicon_url || "",
     footerNote: brand?.footer_note || "",
+    version: brand?.updated_at || "",
   };
+}
+
+/** Append a cache-busting version to non-data URLs. Data URLs are content-addressed. */
+function bust(url: string, version: string) {
+  if (!url || url.startsWith("data:")) return url;
+  const v = encodeURIComponent(version || "1");
+  return url.includes("?") ? `${url}&v=${v}` : `${url}?v=${v}`;
 }
 
 /** Applies favicon + document title from branding. Renders nothing. */
 export function BrandingEffect() {
-  const { siteName, faviconUrl } = useBranding();
+  const { siteName, faviconUrl, version } = useBranding();
   useEffect(() => {
     if (typeof document === "undefined") return;
     if (faviconUrl) {
-      let link = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
-      if (!link) {
-        link = document.createElement("link");
-        link.rel = "icon";
-        document.head.appendChild(link);
-      }
-      link.href = faviconUrl;
+      // Remove any existing icon links so the browser picks up the new one
+      document.querySelectorAll("link[rel~='icon']").forEach((el) => el.parentElement?.removeChild(el));
+      const link = document.createElement("link");
+      link.rel = "icon";
+      link.href = bust(faviconUrl, version);
+      document.head.appendChild(link);
     }
     if (siteName && !document.title.includes(siteName)) {
-      // keep page-specific title; just ensure site name is in it
       document.title = document.title ? `${document.title} — ${siteName}` : siteName;
     }
-  }, [faviconUrl, siteName]);
+  }, [faviconUrl, siteName, version]);
   return null;
 }
+
