@@ -9,16 +9,22 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const { siteName, logoUrl, tagline, footerNote } = useBranding();
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <header className="border-b bg-background/80 backdrop-blur sticky top-0 z-10">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex min-w-0 items-center gap-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Store className="h-5 w-5" />
-            </div>
-            <span className="truncate text-lg font-bold sm:text-xl">Supershop</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="h-9 w-9 rounded-lg object-contain bg-white p-0.5" />
+            ) : (
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Store className="h-5 w-5" />
+              </div>
+            )}
+            <span className="truncate text-lg font-bold sm:text-xl">{siteName}</span>
           </div>
+
           <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
             <Link to="/login">
               <Button variant="ghost" size="sm" className="px-2 sm:px-3">লগিন</Button>
