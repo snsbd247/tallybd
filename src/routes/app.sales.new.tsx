@@ -36,8 +36,6 @@ function Page() {
   const [saleType, setSaleType] = useState<SaleType>("cash");
   const [note, setNote] = useState("");
   const [lines, setLines] = useState<Line[]>([]);
-  const [productPick, setProductPick] = useState("");
-  const [search, setSearch] = useState("");
 
   const [installments, setInstallments] = useState(3);
   const [instFreq, setInstFreq] = useState<"weekly" | "monthly">("monthly");
@@ -47,14 +45,6 @@ function Page() {
   const total = Math.max(0, subtotal - discount);
   const effectivePaid = saleType === "cash" ? total : paid;
   const due = Math.max(0, total - effectivePaid);
-
-  const filteredProducts = useMemo(() => {
-    const s = search.toLowerCase().trim();
-    if (!s) return prod.data ?? [];
-    return (prod.data ?? []).filter((p: any) =>
-      p.name.toLowerCase().includes(s) || (p.sku ?? "").toLowerCase().includes(s) || (p.barcode ?? "").includes(s)
-    );
-  }, [search, prod.data]);
 
   const addProduct = (pid: string) => {
     if (!pid) return;
