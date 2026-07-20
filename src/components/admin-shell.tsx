@@ -21,8 +21,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const loc = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { siteName, logoUrl } = useBranding();
 
   useEffect(() => { setOpen(false); }, [loc.pathname]);
+
 
   const signOut = async () => {
     await supabase.auth.signOut();
