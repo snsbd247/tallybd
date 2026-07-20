@@ -1,4 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { lazy, Suspense, useState } from "react";
 import {
   Store,
   ShieldCheck,
@@ -17,16 +20,61 @@ import {
   Cloud,
   Star,
   ChevronRight,
+  Mail,
+  Phone,
+  Loader2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBranding } from "@/hooks/use-branding";
+import { listPublicPackages, submitDemoRequest } from "@/lib/landing.functions";
+import { toast } from "sonner";
+
+const SITE_URL = "https://tallybd.lovable.app";
 
 export const Route = createFileRoute("/")({
   component: Landing,
+  head: () => ({
+    meta: [
+      { title: "Supershop — বাংলাদেশের #১ মুদি দোকান POS ও ম্যানেজমেন্ট সফটওয়্যার" },
+      {
+        name: "description",
+        content:
+          "মুদি দোকানের জন্য সম্পূর্ণ POS, স্টক, বকেয়া, কিস্তি, কাস্টমার ও সাপ্লায়ার ম্যানেজমেন্ট। মোবাইল-ফ্রেন্ডলি, বাংলা ইন্টারফেস, বিকাশ ইন্টিগ্রেশন, ফ্রি ট্রায়াল।",
+      },
+      { name: "keywords", content: "মুদি দোকান সফটওয়্যার, POS বাংলা, দোকান হিসাব, inventory bangladesh, grocery pos" },
+      { property: "og:title", content: "Supershop — মুদি দোকান POS ও ম্যানেজমেন্ট" },
+      { property: "og:description", content: "POS, স্টক, বকেয়া, কিস্তি, রিপোর্ট — সবকিছু এক প্ল্যাটফর্মে।" },
+      { property: "og:url", content: SITE_URL },
+      { property: "og:type", content: "website" },
+      { property: "og:locale", content: "bn_BD" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Supershop — মুদি দোকান POS" },
+      { name: "twitter:description", content: "POS, স্টক, বকেয়া, রিপোর্ট — এক প্ল্যাটফর্মে।" },
+    ],
+    links: [{ rel: "canonical", href: SITE_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Supershop",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web, Android, iOS",
+          offers: { "@type": "Offer", price: "500", priceCurrency: "BDT" },
+          aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "1000" },
+        }),
+      },
+    ],
+  }),
 });
+
+const PricingSection = lazy(() => import("@/components/landing/pricing-section"));
 
 function Landing() {
   const { siteName, logoUrl, tagline, footerNote } = useBranding();
+  const [showForm, setShowForm] = useState(false);
 
   const features = [
     { icon: Package, title: "স্টক ম্যানেজমেন্ট", desc: "প্রোডাক্ট, ক্যাটাগরি, ইউনিট, ব্যারকোড, লো-স্টক অ্যালার্ট", grad: "grad-emerald", soft: "soft-emerald" },
@@ -61,12 +109,11 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border/40 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex min-w-0 items-center gap-2.5">
             {logoUrl ? (
-              <img src={logoUrl} alt={siteName} className="h-10 w-10 rounded-xl object-contain bg-white p-1 shadow-md ring-1 ring-black/5" />
+              <img src={logoUrl} alt={siteName} width={40} height={40} className="h-10 w-10 rounded-xl object-contain bg-white p-1 shadow-md ring-1 ring-black/5" />
             ) : (
               <div className="grad-ocean flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-lg shadow-blue-500/30">
                 <Store className="h-5 w-5" />
@@ -75,12 +122,16 @@ function Landing() {
             <span className="truncate text-lg font-extrabold tracking-tight sm:text-xl">{siteName}</span>
           </div>
 
-          <nav className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
             <a href="#features" className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground md:inline-block">ফিচার</a>
-            <a href="#workflow" className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground md:inline-block">কিভাবে কাজ করে</a>
+            <a href="#pricing" className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground md:inline-block">প্রাইসিং</a>
+            <a href="#contact" className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground md:inline-block">যোগাযোগ</a>
             <Link to="/login">
               <Button variant="ghost" size="sm" className="px-2 sm:px-3">লগিন</Button>
             </Link>
+            <button onClick={() => setShowForm(true)} className="hidden sm:inline-flex">
+              <Button size="sm" className="grad-ocean border-0">ডেমো নিন</Button>
+            </button>
           </nav>
         </div>
       </header>
@@ -88,23 +139,13 @@ function Landing() {
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden">
-          {/* Background mesh */}
-          <div className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute -top-40 left-1/2 h-[500px] w-[900px] -translate-x-1/2 rounded-full bg-gradient-to-br from-blue-400/30 via-indigo-400/20 to-transparent blur-3xl" />
-            <div className="absolute -bottom-40 -left-32 h-[400px] w-[600px] rounded-full bg-gradient-to-tr from-emerald-300/30 to-transparent blur-3xl" />
-            <div className="absolute -right-32 top-40 h-[400px] w-[500px] rounded-full bg-gradient-to-bl from-rose-300/30 to-transparent blur-3xl" />
-            <div
-              className="absolute inset-0 opacity-[0.15]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(to right, rgb(148 163 184 / 0.3) 1px, transparent 1px), linear-gradient(to bottom, rgb(148 163 184 / 0.3) 1px, transparent 1px)",
-                backgroundSize: "56px 56px",
-                maskImage: "radial-gradient(ellipse 60% 50% at 50% 40%, black 40%, transparent 100%)",
-              }}
-            />
+          <div className="pointer-events-none absolute inset-0 -z-10 motion-reduce:hidden">
+            <div className="absolute -top-40 left-1/2 h-[420px] w-[900px] max-w-full -translate-x-1/2 rounded-full bg-gradient-to-br from-blue-400/30 via-indigo-400/20 to-transparent blur-3xl" />
+            <div className="absolute -bottom-40 -left-32 h-[400px] w-[600px] rounded-full bg-gradient-to-tr from-emerald-300/30 to-transparent blur-3xl hidden sm:block" />
+            <div className="absolute -right-32 top-40 h-[400px] w-[500px] rounded-full bg-gradient-to-bl from-rose-300/30 to-transparent blur-3xl hidden sm:block" />
           </div>
 
-          <div className="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20">
+          <div className="mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 sm:pb-24 sm:pt-20">
             <div className="mx-auto max-w-4xl text-center">
               <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur">
                 <span className="grad-emerald inline-block h-1.5 w-1.5 rounded-full" />
@@ -112,42 +153,33 @@ function Landing() {
                 <Sparkles className="h-3 w-3 text-amber-500" />
               </div>
 
-              <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
+              <h1 className="mt-6 text-3xl font-black leading-[1.08] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
                 দোকান চালান{" "}
                 <span className="relative inline-block">
                   <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">
                     স্মার্টলি
                   </span>
-                  <svg className="absolute -bottom-2 left-0 w-full" height="10" viewBox="0 0 200 10" fill="none" preserveAspectRatio="none">
-                    <path d="M2 8 Q100 -2 198 6" stroke="url(#g)" strokeWidth="3" strokeLinecap="round" />
-                    <defs>
-                      <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0" stopColor="#3b82f6" />
-                        <stop offset="1" stopColor="#8b5cf6" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
                 </span>
                 <br />
                 বাড়ান বিক্রি ও লাভ
               </h1>
 
-              <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
+              <p className="mx-auto mt-5 max-w-2xl text-sm text-muted-foreground sm:text-lg">
                 POS, স্টক, ক্রয়-বিক্রয়, বকেয়া, কিস্তি, কাস্টমার ও সাপ্লায়ার লেজার —
                 সবকিছু এক জায়গায়। মোবাইল, ট্যাব বা ল্যাপটপ থেকে যেকোনো জায়গা থেকে চালান।
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
                 <Link to="/login">
                   <Button size="lg" className="grad-ocean h-12 gap-2 rounded-full border-0 px-6 text-base font-semibold shadow-xl shadow-blue-500/30 hover:opacity-95">
                     এখনই শুরু করুন <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
-                <a href="#features">
-                  <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full border-2 px-6 text-base font-semibold">
-                    ফিচার দেখুন <ChevronRight className="h-4 w-4" />
+                <button onClick={() => setShowForm(true)}>
+                  <Button size="lg" variant="outline" className="h-12 gap-2 rounded-full border-2 px-6 text-base font-semibold" asChild={false}>
+                    <span>ডেমো রিকোয়েস্ট <ChevronRight className="h-4 w-4" /></span>
                   </Button>
-                </a>
+                </button>
               </div>
 
               <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
@@ -157,15 +189,14 @@ function Landing() {
               </div>
             </div>
 
-            {/* Preview mockup card */}
-            <div className="relative mx-auto mt-16 max-w-5xl">
+            {/* Preview mockup — hidden on small screens for perf */}
+            <div className="relative mx-auto mt-12 hidden max-w-5xl sm:block sm:mt-16">
               <div className="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-r from-blue-400/30 via-indigo-400/30 to-violet-400/30 opacity-70 blur-2xl" />
               <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl ring-1 ring-black/5">
                 <div className="flex items-center gap-1.5 border-b bg-muted/40 px-4 py-2.5">
                   <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
                   <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
                   <div className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                  <div className="ml-3 h-4 w-40 rounded bg-muted" />
                 </div>
                 <div className="grid gap-3 p-4 sm:grid-cols-4 sm:p-5">
                   {stats.map((s) => (
@@ -213,32 +244,31 @@ function Landing() {
         </section>
 
         {/* Features */}
-        <section id="features" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24">
+        <section id="features" className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-2xl text-center">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
               <Sparkles className="h-3 w-3" /> ফিচার সমূহ
             </div>
-            <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+            <h2 className="mt-4 text-2xl font-black tracking-tight sm:text-4xl">
               যা যা দরকার, সব <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">এক প্ল্যাটফর্মে</span>
             </h2>
-            <p className="mt-3 text-muted-foreground">দোকান পরিচালনার প্রতিটি ধাপ সহজ ও অটোমেটেড</p>
+            <p className="mt-3 text-sm text-muted-foreground sm:text-base">দোকান পরিচালনার প্রতিটি ধাপ সহজ ও অটোমেটেড</p>
           </div>
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (
-              <div key={f.title} className="card-hover group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+              <div key={f.title} className="card-hover group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-sm sm:p-6">
                 <div className={`pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-20 blur-2xl ${f.grad}`} />
-                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl shadow-lg ${f.grad}`}>
-                  <f.icon className="h-6 w-6" />
+                <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl shadow-lg sm:h-12 sm:w-12 ${f.grad}`}>
+                  <f.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <h3 className="mt-5 text-lg font-bold">{f.title}</h3>
+                <h3 className="mt-4 text-base font-bold sm:text-lg">{f.title}</h3>
                 <p className="mt-1.5 text-sm text-muted-foreground">{f.desc}</p>
               </div>
             ))}
           </div>
 
-          {/* Highlights strip */}
-          <div className="mt-10 rounded-2xl border bg-gradient-to-br from-slate-50 to-blue-50/50 p-6 sm:p-8">
+          <div className="mt-8 rounded-2xl border bg-gradient-to-br from-slate-50 to-blue-50/50 p-5 sm:mt-10 sm:p-8">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {highlights.map((h) => (
                 <div key={h} className="flex items-center gap-2.5 text-sm">
@@ -252,28 +282,33 @@ function Landing() {
           </div>
         </section>
 
+        {/* Pricing */}
+        <Suspense fallback={<div className="py-24 text-center text-sm text-muted-foreground">লোড হচ্ছে…</div>}>
+          <PricingSection onDemoClick={() => setShowForm(true)} />
+        </Suspense>
+
         {/* Workflow */}
         <section id="workflow" className="border-t bg-muted/30">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-24">
             <div className="mx-auto max-w-2xl text-center">
               <div className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
                 <Zap className="h-3 w-3" /> কিভাবে কাজ করে
               </div>
-              <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">৩ ধাপে শুরু</h2>
-              <p className="mt-3 text-muted-foreground">টেকনিক্যাল জ্ঞান লাগবে না — যেকেউ পারবে</p>
+              <h2 className="mt-4 text-2xl font-black tracking-tight sm:text-4xl">৩ ধাপে শুরু</h2>
+              <p className="mt-3 text-sm text-muted-foreground sm:text-base">টেকনিক্যাল জ্ঞান লাগবে না — যেকেউ পারবে</p>
             </div>
 
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
+            <div className="mt-10 grid gap-5 sm:mt-12 md:grid-cols-3">
               {workflow.map((w, i) => (
                 <div key={w.step} className="relative">
-                  <div className="card-hover relative overflow-hidden rounded-2xl border bg-card p-6 shadow-sm">
+                  <div className="card-hover relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
                     <div className="flex items-start justify-between">
-                      <div className="grad-ocean inline-flex h-12 w-12 items-center justify-center rounded-xl shadow-lg shadow-blue-500/30">
-                        <w.icon className="h-6 w-6" />
+                      <div className="grad-ocean inline-flex h-11 w-11 items-center justify-center rounded-xl shadow-lg shadow-blue-500/30 sm:h-12 sm:w-12">
+                        <w.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
-                      <span className="text-4xl font-black text-muted-foreground/20">{w.step}</span>
+                      <span className="text-3xl font-black text-muted-foreground/20 sm:text-4xl">{w.step}</span>
                     </div>
-                    <h3 className="mt-4 text-lg font-bold">{w.title}</h3>
+                    <h3 className="mt-4 text-base font-bold sm:text-lg">{w.title}</h3>
                     <p className="mt-1.5 text-sm text-muted-foreground">{w.desc}</p>
                   </div>
                   {i < workflow.length - 1 && (
@@ -285,15 +320,15 @@ function Landing() {
           </div>
         </section>
 
-        {/* Trust / Testimonial band */}
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24">
-          <div className="grid gap-6 lg:grid-cols-3">
+        {/* Testimonials */}
+        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-24">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
             {[
               { name: "মোঃ রফিকুল ইসলাম", role: "মালিক, রফিক স্টোর", stars: 5, quote: "আগে হিসাব রাখতে অনেক ঝামেলা হতো। এখন সব অটোমেটিক — বকেয়া, স্টক, রিপোর্ট সব হাতের মুঠোয়।" },
               { name: "সাদিয়া আক্তার", role: "মালিক, সাদিয়া মার্ট", stars: 5, quote: "SMS দিয়ে কাস্টমারকে বিল পাঠানো যায়। বকেয়া আদায় অনেক সহজ হয়ে গেছে।" },
               { name: "কামাল হোসেন", role: "মালিক, নিউ ঢাকা স্টোর", stars: 5, quote: "মোবাইল থেকেই দোকান চালাচ্ছি। বিকাশ পেমেন্ট ইন্টিগ্রেশন সবচেয়ে ভালো ফিচার।" },
             ].map((t) => (
-              <div key={t.name} className="card-hover rounded-2xl border bg-card p-6 shadow-sm">
+              <div key={t.name} className="card-hover rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
                 <div className="flex gap-0.5">
                   {Array.from({ length: t.stars }).map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -314,20 +349,46 @@ function Landing() {
           </div>
         </section>
 
+        {/* Contact / Demo form */}
+        <section id="contact" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24">
+          <div className="grid gap-8 rounded-3xl border bg-gradient-to-br from-blue-50 via-white to-violet-50 p-6 shadow-lg sm:p-10 lg:grid-cols-2">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700 shadow-sm">
+                <Mail className="h-3 w-3" /> যোগাযোগ করুন
+              </div>
+              <h2 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">
+                ফ্রি ডেমো নিন
+              </h2>
+              <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+                আপনার দোকান ও প্রয়োজন জানান — আমাদের এক্সপার্ট আপনাকে কল দিয়ে সম্পূর্ণ সিস্টেম দেখাবে।
+              </p>
+              <ul className="mt-5 space-y-2 text-sm">
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" /> ৩০ মিনিটের ফ্রি ডেমো</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" /> সেটআপে সাহায্য</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" /> কোনো কার্ড লাগবে না</li>
+              </ul>
+              <div className="mt-6 flex flex-wrap gap-4 text-sm text-muted-foreground">
+                <a href="tel:+8801700000000" className="flex items-center gap-2 hover:text-foreground"><Phone className="h-4 w-4" /> +৮৮ ০১৭০০-০০০০০০</a>
+                <a href="mailto:hello@supershop.app" className="flex items-center gap-2 hover:text-foreground"><Mail className="h-4 w-4" /> hello@supershop.app</a>
+              </div>
+            </div>
+            <DemoForm />
+          </div>
+        </section>
+
         {/* CTA */}
-        <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
-          <div className="grad-ocean relative overflow-hidden rounded-3xl p-8 shadow-2xl shadow-blue-500/30 sm:p-14">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/15 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-10 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-            <div className="relative grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20">
+          <div className="grad-ocean relative overflow-hidden rounded-3xl p-6 shadow-2xl shadow-blue-500/30 sm:p-14">
+            <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/15 blur-3xl motion-reduce:hidden" />
+            <div className="relative grid items-center gap-6 lg:grid-cols-[1fr_auto]">
               <div>
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur">
                   <Sparkles className="h-3 w-3" /> আজই শুরু করুন
                 </div>
-                <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">
+                <h2 className="mt-3 text-2xl font-black leading-tight sm:text-4xl">
                   আপনার দোকানকে ডিজিটাল করুন
                 </h2>
-                <p className="mt-3 max-w-xl text-white/90">
+                <p className="mt-3 max-w-xl text-sm text-white/90 sm:text-base">
                   হাজার হাজার দোকানদার আমাদের সাথে বিক্রি বাড়াচ্ছেন। আজই যোগ দিন।
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-white/90">
@@ -337,7 +398,7 @@ function Landing() {
                 </div>
               </div>
               <Link to="/login">
-                <Button size="lg" className="h-14 gap-2 rounded-full bg-white px-8 text-base font-bold text-blue-700 shadow-xl hover:bg-white/95">
+                <Button size="lg" className="h-12 gap-2 rounded-full bg-white px-6 text-base font-bold text-blue-700 shadow-xl hover:bg-white/95 sm:h-14 sm:px-8">
                   ফ্রি শুরু করুন <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
@@ -346,14 +407,13 @@ function Landing() {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="border-t bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
             <div className="sm:col-span-2">
               <div className="flex items-center gap-2.5">
                 {logoUrl ? (
-                  <img src={logoUrl} alt={siteName} className="h-9 w-9 rounded-lg bg-white object-contain p-1 ring-1 ring-black/5" />
+                  <img src={logoUrl} alt={siteName} width={36} height={36} loading="lazy" className="h-9 w-9 rounded-lg bg-white object-contain p-1 ring-1 ring-black/5" />
                 ) : (
                   <div className="grad-ocean flex h-9 w-9 items-center justify-center rounded-lg shadow-md">
                     <Store className="h-4 w-4" />
@@ -369,8 +429,17 @@ function Landing() {
               <h4 className="text-sm font-bold">প্রোডাক্ট</h4>
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                 <li><a href="#features" className="hover:text-foreground">ফিচার</a></li>
+                <li><a href="#pricing" className="hover:text-foreground">প্রাইসিং</a></li>
                 <li><a href="#workflow" className="hover:text-foreground">কিভাবে কাজ করে</a></li>
                 <li><Link to="/login" className="hover:text-foreground">লগিন</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold">যোগাযোগ</h4>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li><a href="#contact" className="hover:text-foreground">ডেমো রিকোয়েস্ট</a></li>
+                <li><a href="mailto:hello@supershop.app" className="hover:text-foreground">hello@supershop.app</a></li>
+                <li><a href="tel:+8801700000000" className="hover:text-foreground">+৮৮ ০১৭০০-০০০০০০</a></li>
               </ul>
             </div>
           </div>
@@ -380,6 +449,60 @@ function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Modal demo form */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm" onClick={() => setShowForm(false)}>
+          <div className="relative w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl sm:p-8" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowForm(false)} className="absolute right-3 top-3 rounded-full p-1.5 hover:bg-muted" aria-label="Close">
+              <X className="h-4 w-4" />
+            </button>
+            <h3 className="text-xl font-bold">ফ্রি ডেমো রিকোয়েস্ট</h3>
+            <p className="mt-1 text-sm text-muted-foreground">আপনার তথ্য দিন, আমরা যোগাযোগ করব।</p>
+            <div className="mt-5">
+              <DemoForm onSuccess={() => setShowForm(false)} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function DemoForm({ onSuccess }: { onSuccess?: () => void }) {
+  const submitFn = useServerFn(submitDemoRequest);
+  const [form, setForm] = useState({ name: "", phone: "", email: "", shop_name: "", message: "" });
+  const mutation = useMutation({
+    mutationFn: (data: typeof form) => submitFn({ data }),
+    onSuccess: () => {
+      toast.success("ধন্যবাদ! আমরা শীঘ্রই যোগাযোগ করব।");
+      setForm({ name: "", phone: "", email: "", shop_name: "", message: "" });
+      onSuccess?.();
+    },
+    onError: (err: Error) => toast.error(err.message || "সাবমিট ব্যর্থ"),
+  });
+
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        mutation.mutate(form);
+      }}
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <input required minLength={2} maxLength={100} placeholder="আপনার নাম *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="h-11 rounded-lg border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+        <input required minLength={6} maxLength={20} placeholder="মোবাইল নম্বর *" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="h-11 rounded-lg border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <input type="email" maxLength={255} placeholder="ইমেইল (ঐচ্ছিক)" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="h-11 rounded-lg border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+        <input maxLength={150} placeholder="দোকানের নাম" value={form.shop_name} onChange={(e) => setForm({ ...form, shop_name: e.target.value })} className="h-11 rounded-lg border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <textarea maxLength={1000} rows={3} placeholder="আপনার বার্তা (ঐচ্ছিক)" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+      <Button type="submit" disabled={mutation.isPending} size="lg" className="grad-ocean w-full gap-2 rounded-lg border-0 text-base font-semibold">
+        {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+        {mutation.isPending ? "পাঠানো হচ্ছে..." : "রিকোয়েস্ট পাঠান"}
+      </Button>
+    </form>
   );
 }
