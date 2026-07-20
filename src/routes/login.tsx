@@ -40,11 +40,16 @@ function ShopLogin() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <div className="w-full max-w-md">
         <Link to="/" className="mb-6 flex items-center justify-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Store className="h-5 w-5" />
-          </div>
-          <span className="text-xl font-bold">Supershop</span>
+          {logoUrl ? (
+            <img src={logoUrl} alt={siteName} className="h-10 w-10 rounded-lg object-contain bg-white p-0.5" />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Store className="h-5 w-5" />
+            </div>
+          )}
+          <span className="text-xl font-bold">{siteName}</span>
         </Link>
+
         <div className="rounded-xl border bg-card p-8 shadow-sm">
           <h1 className="text-2xl font-bold">দোকানদার লগিন</h1>
           <p className="mt-1 text-sm text-muted-foreground">আপনার দোকানের একাউন্টে লগিন করুন।</p>
