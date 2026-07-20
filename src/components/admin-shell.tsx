@@ -4,7 +4,9 @@ import { LayoutDashboard, Store, Package, Settings, LogOut, ShieldCheck, CreditC
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
+import { useBranding } from "@/hooks/use-branding";
 import type { ReactNode } from "react";
+
 
 const nav: { to: string; label: string; icon: any; color: string; exact?: boolean }[] = [
   { to: "/admin", label: "ড্যাশবোর্ড", icon: LayoutDashboard, color: "from-sky-400 to-indigo-500", exact: true },
