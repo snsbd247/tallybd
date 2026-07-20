@@ -39,14 +39,22 @@ function Dashboard() {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
   }, []);
 
+  const monthlyRevenue = Number(data?.monthlyRevenue ?? 0);
   const stats = [
     { label: "মোট দোকান", value: data?.totalShops ?? 0, sub: "সব রেজিস্টার্ড", icon: Store, grad: "grad-blue", soft: "soft-blue" },
     { label: "সক্রিয় সাবস্ক্রিপশন", value: data?.activeShops ?? 0, sub: "চলমান", icon: CheckCircle2, grad: "grad-emerald", soft: "soft-emerald" },
-    { label: "এ মাসের আয়", value: fmt(data?.monthlyRevenue ?? 0), sub: `মোট ৳${(data?.monthlyRevenue ?? 0).toLocaleString("bn-BD")}`, icon: Wallet, grad: "grad-violet", soft: "soft-violet" },
+    {
+      label: "এ মাসের আয়",
+      value: monthlyRevenue > 0 ? fmt(monthlyRevenue) : "—",
+      sub: monthlyRevenue > 0 ? `মোট ৳${monthlyRevenue.toLocaleString("bn-BD")}` : "এই মাসে এখনো কোনো পেমেন্ট নেই",
+      icon: Wallet, grad: "grad-violet", soft: "soft-violet",
+      empty: monthlyRevenue <= 0,
+    },
     { label: "লকড অ্যাকাউন্ট", value: data?.lockedShops ?? 0, sub: "পর্যালোচনা প্রয়োজন", icon: Lock, grad: "grad-rose", soft: "soft-rose" },
     { label: "মেয়াদ শেষ", value: data?.expiredShops ?? 0, sub: "রিনিউ প্রয়োজন", icon: XCircle, grad: "grad-amber", soft: "soft-amber" },
     { label: "SMS পাঠানো", value: data?.smsSent ?? 0, sub: "মোট ডেলিভারি", icon: MessageSquare, grad: "grad-cyan", soft: "soft-cyan" },
   ];
+
 
   const actions = [
     { label: "নতুন দোকান তৈরি", icon: Plus, to: "/admin/shops", grad: "grad-emerald" },
@@ -109,16 +117,22 @@ function Dashboard() {
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-slate-700">{c.label}</p>
-                  <p className="mt-2 text-2xl font-extrabold leading-tight text-slate-900">{c.value}</p>
-                  <p className="mt-2 text-xs text-slate-600">{c.sub}</p>
+                  <p className={`mt-2 text-2xl font-extrabold leading-tight ${(c as any).empty ? "text-slate-400" : "text-slate-900"}`}>{c.value}</p>
+                  <p className={`mt-2 text-xs ${(c as any).empty ? "italic text-slate-500" : "text-slate-600"}`}>{c.sub}</p>
+                  {(c as any).empty && (
+                    <Link to="/admin/subscriptions" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-violet-700 hover:underline">
+                      পেমেন্ট দেখুন <ArrowUpRight className="h-3 w-3" />
+                    </Link>
+                  )}
                 </div>
-                <div className={`shrink-0 rounded-xl p-2.5 shadow-md ${c.grad}`}>
+                <div className={`shrink-0 rounded-xl p-2.5 shadow-md ${c.grad} ${(c as any).empty ? "opacity-70" : ""}`}>
                   <c.icon className="h-5 w-5" />
                 </div>
               </div>
             </div>
           ))}
         </div>
+
 
         {/* Recent + Quick actions */}
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
