@@ -19,14 +19,26 @@ export const getAdminStats = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertSuperAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [total, active, expired, locked, packages, sms] = await Promise.all([
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const [total, active, expired, locked, packages, sms, revenue] = await Promise.all([
       supabaseAdmin.from("shops").select("id", { count: "exact", head: true }),
       supabaseAdmin.from("shops").select("id", { count: "exact", head: true }).eq("status", "active"),
       supabaseAdmin.from("shops").select("id", { count: "exact", head: true }).eq("status", "expired"),
       supabaseAdmin.from("shops").select("id", { count: "exact", head: true }).eq("status", "locked"),
       supabaseAdmin.from("packages").select("id", { count: "exact", head: true }),
       supabaseAdmin.from("sms_logs").select("id", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("subscription_payments")
+        .select("amount")
+        .eq("status", "approved")
+        .gte("created_at", monthStart.toISOString()),
     ]);
+    const monthlyRevenue = (revenue.data ?? []).reduce(
+      (s: number, r: any) => s + Number(r.amount || 0),
+      0,
+    );
     return {
       totalShops: total.count ?? 0,
       activeShops: active.count ?? 0,
@@ -34,8 +46,10 @@ export const getAdminStats = createServerFn({ method: "GET" })
       lockedShops: locked.count ?? 0,
       totalPackages: packages.count ?? 0,
       smsSent: sms.count ?? 0,
+      monthlyRevenue,
     };
   });
+
 
 // ---------- Shops ----------
 export const listShops = createServerFn({ method: "GET" })
