@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Store, ShieldCheck, Package, CreditCard, MessageSquare, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useBranding } from "@/hooks/use-branding";
+
 
 export const Route = createFileRoute("/")({
   component: Landing,
