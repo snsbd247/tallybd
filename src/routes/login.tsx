@@ -15,6 +15,8 @@ export const Route = createFileRoute("/login")({ component: ShopLogin });
 function ShopLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { siteName, logoUrl } = useBranding();
+
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { session, primaryShopId, isSuperAdmin, loading: authLoading } = useAuth();
