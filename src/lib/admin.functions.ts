@@ -522,7 +522,7 @@ export const getShopDetail = createServerFn({ method: "GET" })
       supabaseAdmin.from("purchases").select("total, paid, due, payment_method").eq("shop_id", sid),
       supabaseAdmin.from("customers").select("id, name, phone, current_balance").eq("shop_id", sid).order("name"),
       supabaseAdmin.from("suppliers").select("id, name, phone, current_balance").eq("shop_id", sid).order("name"),
-      supabaseAdmin.from("products").select("id, name, sku, stock_quantity, low_stock_alert, purchase_price, selling_price, unit:units(name)").eq("shop_id", sid).order("name"),
+      supabaseAdmin.from("products").select("id, name, sku, stock_quantity, low_stock_alert, purchase_price, sale_price, unit:units(name)").eq("shop_id", sid).order("name"),
       supabaseAdmin.from("customer_payments").select("amount, payment_method").eq("shop_id", sid),
       supabaseAdmin.from("supplier_payments").select("amount, payment_method").eq("shop_id", sid),
     ]);
