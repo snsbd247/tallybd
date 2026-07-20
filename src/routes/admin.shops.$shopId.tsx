@@ -74,7 +74,7 @@ function ShopDetail() {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["shop-detail", shopId] });
   const setSearch = (patch: Partial<z.infer<typeof searchSchema>>) =>
-    navigate({ search: (prev) => ({ ...prev, ...patch }), params: { shopId }, replace: true });
+    navigate({ search: (prev: any) => ({ ...prev, ...patch }), params: { shopId }, replace: true });
 
   const openEdit = () => {
     if (!shop) return;
