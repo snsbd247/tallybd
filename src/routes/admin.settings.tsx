@@ -23,19 +23,30 @@ function SettingsPage() {
   const bkashFn = useServerFn(saveBkashSettings);
   const smsFn = useServerFn(saveSmsSettings);
   const tplFn = useServerFn(saveSmsTemplate);
+  const brandGetFn = useServerFn(getBranding);
+  const brandSaveFn = useServerFn(saveBranding);
   const { data } = useQuery({ queryKey: ["gateway-settings"], queryFn: () => getFn() });
+  const brand = useQuery({ queryKey: ["branding"], queryFn: () => brandGetFn() });
 
   return (
     <AdminShell>
       <div className="p-4 sm:p-6">
       <h1 className="text-xl font-bold sm:text-2xl">সেটিংস</h1>
-      <p className="text-sm text-muted-foreground">পেমেন্ট ও SMS গেটওয়ে ব্যবস্থাপনা</p>
-      <Tabs defaultValue="bkash" className="mt-5">
+      <p className="text-sm text-muted-foreground">সাইট ব্র্যান্ডিং, পেমেন্ট ও SMS গেটওয়ে ব্যবস্থাপনা</p>
+      <Tabs defaultValue="branding" className="mt-5">
         <TabsList className="h-auto max-w-full justify-start overflow-x-auto p-1">
+          <TabsTrigger value="branding">ব্র্যান্ডিং</TabsTrigger>
           <TabsTrigger value="bkash">bKash পেমেন্ট</TabsTrigger>
           <TabsTrigger value="sms">Greenweb SMS</TabsTrigger>
           <TabsTrigger value="templates">SMS টেমপ্লেট</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="branding">
+          <BrandingForm initial={brand.data} onSave={async (v) => {
+            await brandSaveFn({ data: v }); toast.success("ব্র্যান্ডিং সেভ হয়েছে"); qc.invalidateQueries({ queryKey: ["branding"] });
+          }} />
+        </TabsContent>
+
 
         <TabsContent value="bkash">
           {data && <BkashForm initial={data.bkash} onSave={async (v) => {
