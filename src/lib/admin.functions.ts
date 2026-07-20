@@ -721,3 +721,28 @@ export const saveBranding = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+
+// ---------- Subscription invoice ----------
+export const getSubscriptionInvoice = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ subscription_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: sub, error } = await supabaseAdmin
+      .from("subscriptions")
+      .select("*, shop:shops(name, owner_name, phone, email, address), package:packages(name, price_monthly, price_yearly)")
+      .eq("id", data.subscription_id)
+      .single();
+    if (error) throw new Error(error.message);
+    const { data: brand } = await supabaseAdmin.from("app_branding").select("*").limit(1).maybeSingle();
+    // Related payment (if any)
+    const { data: pay } = await supabaseAdmin
+      .from("subscription_payments")
+      .select("*")
+      .eq("subscription_id", data.subscription_id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return { subscription: sub, brand, payment: pay };
+  });
