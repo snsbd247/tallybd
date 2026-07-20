@@ -4,7 +4,9 @@ import { LayoutDashboard, Store, Package, Settings, LogOut, ShieldCheck, CreditC
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
+import { useBranding } from "@/hooks/use-branding";
 import type { ReactNode } from "react";
+
 
 const nav: { to: string; label: string; icon: any; color: string; exact?: boolean }[] = [
   { to: "/admin", label: "ড্যাশবোর্ড", icon: LayoutDashboard, color: "from-sky-400 to-indigo-500", exact: true },
@@ -19,8 +21,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const loc = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { siteName, logoUrl } = useBranding();
 
   useEffect(() => { setOpen(false); }, [loc.pathname]);
+
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -50,15 +54,20 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   const Brand = () => (
     <div className="flex min-w-0 items-center gap-3 border-b border-white/10 px-4 py-4 pr-12">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 shadow-lg">
-        <ShieldCheck className="h-5 w-5 text-white" />
-      </div>
+      {logoUrl ? (
+        <img src={logoUrl} alt={siteName} className="h-10 w-10 shrink-0 rounded-xl object-contain bg-white p-1" />
+      ) : (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 shadow-lg">
+          <ShieldCheck className="h-5 w-5 text-white" />
+        </div>
+      )}
       <div className="min-w-0">
-        <div className="truncate font-bold text-white">Supershop</div>
+        <div className="truncate font-bold text-white">{siteName}</div>
         <div className="truncate text-[11px] text-slate-400 flex items-center gap-1"><Sparkles className="h-3 w-3" /> সুপার এডমিন</div>
       </div>
     </div>
   );
+
 
   const current = nav.find((n) => n.exact ? loc.pathname === n.to : loc.pathname.startsWith(n.to));
 
@@ -96,14 +105,19 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </SheetContent>
           </Sheet>
           <div className="flex min-w-0 items-center gap-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-fuchsia-500">
-              <ShieldCheck className="h-4 w-4 text-white" />
-            </div>
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="h-9 w-9 shrink-0 rounded-lg object-contain bg-white p-0.5" />
+            ) : (
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-fuchsia-500">
+                <ShieldCheck className="h-4 w-4 text-white" />
+              </div>
+            )}
             <div className="min-w-0">
-              <div className="truncate text-sm font-bold">Supershop Admin</div>
+              <div className="truncate text-sm font-bold">{siteName}</div>
               <div className="truncate text-xs text-slate-300">{current?.label ?? "এডমিন প্যানেল"}</div>
             </div>
           </div>
+
         </div>
         <div className="min-w-0 flex-1 overflow-x-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">{children}</div>
       </main>
