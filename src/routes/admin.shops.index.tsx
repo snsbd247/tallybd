@@ -2,6 +2,7 @@ import { createFileRoute, Link, useMatchRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listShops, createShop, updateShopStatus, extendShopSubscription, listPackages, deleteShop } from "@/lib/admin.functions";
+import { createImpersonationToken } from "@/lib/impersonation.functions";
 import { AdminShell } from "@/components/admin-shell";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2, Loader2 } from "lucide-react";
+import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2, Loader2, LogIn } from "lucide-react";
 
 export const Route = createFileRoute("/admin/shops/")({ component: ShopsPage });
 
