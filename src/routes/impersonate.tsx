@@ -26,12 +26,9 @@ function hijackAuthStorage() {
   ls.getItem = (k: string) => (shouldRedirect(k) ? ss.getItem(k) : origGet(k));
   ls.setItem = (k: string, v: string) => (shouldRedirect(k) ? ss.setItem(k, v) : origSet(k, v));
   ls.removeItem = (k: string) => (shouldRedirect(k) ? ss.removeItem(k) : origRemove(k));
-  // Clear any lingering super admin session that may have been read before hijack
-  for (let i = ls.length - 1; i >= 0; i--) {
-    const key = ls.key(i);
-    if (key && key.startsWith("sb-")) origRemove(key);
-  }
-  // Mark this tab as an impersonation tab
+  // NOTE: do NOT clear existing sb-* keys from localStorage — localStorage is
+  // shared across tabs on the same origin, so clearing here would sign the
+  // super admin out in their original tab.
   ss.setItem("__lovable_impersonating", "1");
 }
 
