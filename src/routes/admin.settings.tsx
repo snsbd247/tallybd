@@ -43,7 +43,8 @@ function SettingsPage() {
 
         <TabsContent value="branding">
           <BrandingForm initial={brand.data} onSave={async (v) => {
-            await brandSaveFn({ data: v }); toast.success("ব্র্যান্ডিং সেভ হয়েছে"); qc.invalidateQueries({ queryKey: ["branding"] });
+            await brandSaveFn({ data: v });
+            await qc.invalidateQueries({ queryKey: ["branding"] });
           }} />
         </TabsContent>
 
@@ -166,12 +167,20 @@ function TestSmsForm() {
   );
 }
 
+const LOGO_MAX_KB = 512;
+const FAVICON_MAX_KB = 128;
+const LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
+const FAVICON_TYPES = ["image/png", "image/x-icon", "image/vnd.microsoft.icon", "image/svg+xml", "image/jpeg"];
+
+const EMPTY_BRAND = {
+  site_name: "", tagline: "", logo_url: "", favicon_url: "",
+  contact_email: "", contact_phone: "", contact_address: "",
+  facebook_url: "", website_url: "", footer_note: "",
+};
+
 function BrandingForm({ initial, onSave }: { initial: any; onSave: (v: any) => Promise<void> }) {
-  const [f, setF] = useState({
-    site_name: "", tagline: "", logo_url: "", favicon_url: "",
-    contact_email: "", contact_phone: "", contact_address: "",
-    facebook_url: "", website_url: "", footer_note: "",
-  });
+  const [f, setF] = useState(EMPTY_BRAND);
+  const [saving, setSaving] = useState(false);
   useEffect(() => {
     if (!initial) return;
     setF({
@@ -198,21 +207,54 @@ function BrandingForm({ initial, onSave }: { initial: any; onSave: (v: any) => P
 
   const handleFile = async (key: "logo_url" | "favicon_url", file: File | null) => {
     if (!file) return;
-    const maxKB = key === "favicon_url" ? 128 : 512;
-    if (file.size > maxKB * 1024) {
-      toast.error(`ফাইল সাইজ ${maxKB}KB এর কম হতে হবে`);
+    const isFav = key === "favicon_url";
+    const maxKB = isFav ? FAVICON_MAX_KB : LOGO_MAX_KB;
+    const allowed = isFav ? FAVICON_TYPES : LOGO_TYPES;
+    if (!allowed.includes(file.type)) {
+      toast.error(
+        isFav
+          ? "ফেভিকন হিসেবে PNG/ICO/SVG/JPG ফাইল আপলোড করুন"
+          : "লোগো হিসেবে PNG/JPG/WEBP/SVG ফাইল আপলোড করুন"
+      );
       return;
     }
-    const dataUrl = await fileToDataUrl(file);
-    setF((prev) => ({ ...prev, [key]: dataUrl }));
-    toast.success("ছবি লোড হয়েছে — সেভ করুন");
+    if (file.size > maxKB * 1024) {
+      toast.error(`ফাইল সাইজ ${maxKB}KB এর কম হতে হবে (বর্তমান: ${Math.round(file.size / 1024)}KB)`);
+      return;
+    }
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setF((prev) => ({ ...prev, [key]: dataUrl }));
+      toast.success("ছবি লোড হয়েছে — সেভ করুন");
+    } catch {
+      toast.error("ছবি পড়া যায়নি");
+    }
+  };
+
+  const resetDefaults = () => {
+    if (!confirm("সব ব্র্যান্ডিং মুছে ডিফল্টে ফিরিয়ে নিতে চান?")) return;
+    setF(EMPTY_BRAND);
+    toast.info("ডিফল্টে রিসেট করা হলো — সেভ করলে কার্যকর হবে");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await onSave(f);
+      toast.success("ব্র্যান্ডিং সেভ হয়েছে");
+    } catch (err: any) {
+      toast.error(err?.message || "সেভ ব্যর্থ হয়েছে");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="mt-4 max-w-3xl space-y-4 rounded-lg border bg-card p-4 sm:p-6">
+    <form onSubmit={handleSubmit} className="mt-4 max-w-3xl space-y-4 rounded-lg border bg-card p-4 sm:p-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-md border bg-muted/30 p-3">
-          <Label>লোগো</Label>
+          <Label>লোগো <span className="text-xs text-muted-foreground">(সর্বোচ্চ {LOGO_MAX_KB}KB)</span></Label>
           <div className="mt-2 flex items-center gap-3">
             {f.logo_url ? (
               <img src={f.logo_url} alt="logo" className="h-16 w-16 rounded object-contain bg-white p-1 border" />
@@ -220,13 +262,13 @@ function BrandingForm({ initial, onSave }: { initial: any; onSave: (v: any) => P
               <div className="h-16 w-16 rounded border bg-muted flex items-center justify-center text-xs text-muted-foreground">নেই</div>
             )}
             <div className="flex-1 space-y-2">
-              <Input type="file" accept="image/*" onChange={(e) => handleFile("logo_url", e.target.files?.[0] ?? null)} />
+              <Input type="file" accept={LOGO_TYPES.join(",")} onChange={(e) => handleFile("logo_url", e.target.files?.[0] ?? null)} />
               {f.logo_url && <Button type="button" variant="ghost" size="sm" onClick={() => setF({ ...f, logo_url: "" })}>মুছুন</Button>}
             </div>
           </div>
         </div>
         <div className="rounded-md border bg-muted/30 p-3">
-          <Label>ফেভিকন (ব্রাউজার ট্যাব আইকন)</Label>
+          <Label>ফেভিকন <span className="text-xs text-muted-foreground">(সর্বোচ্চ {FAVICON_MAX_KB}KB)</span></Label>
           <div className="mt-2 flex items-center gap-3">
             {f.favicon_url ? (
               <img src={f.favicon_url} alt="favicon" className="h-10 w-10 rounded object-contain bg-white p-1 border" />
@@ -234,7 +276,7 @@ function BrandingForm({ initial, onSave }: { initial: any; onSave: (v: any) => P
               <div className="h-10 w-10 rounded border bg-muted flex items-center justify-center text-[10px] text-muted-foreground">নেই</div>
             )}
             <div className="flex-1 space-y-2">
-              <Input type="file" accept="image/png,image/x-icon,image/svg+xml,image/jpeg" onChange={(e) => handleFile("favicon_url", e.target.files?.[0] ?? null)} />
+              <Input type="file" accept={FAVICON_TYPES.join(",")} onChange={(e) => handleFile("favicon_url", e.target.files?.[0] ?? null)} />
               {f.favicon_url && <Button type="button" variant="ghost" size="sm" onClick={() => setF({ ...f, favicon_url: "" })}>মুছুন</Button>}
             </div>
           </div>
@@ -259,8 +301,12 @@ function BrandingForm({ initial, onSave }: { initial: any; onSave: (v: any) => P
 
       <div><Label>ফুটার/রিসিপ্ট নোট</Label><Textarea rows={2} value={f.footer_note} onChange={(e) => setF({ ...f, footer_note: e.target.value })} placeholder="যেমন: ধন্যবাদ আমাদের সাথে থাকার জন্য।" /></div>
 
-      <Button type="submit">সেভ করুন</Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="submit" disabled={saving}>{saving ? "সেভ হচ্ছে..." : "সেভ করুন"}</Button>
+        <Button type="button" variant="outline" onClick={resetDefaults} disabled={saving}>ডিফল্টে রিসেট</Button>
+      </div>
     </form>
   );
 }
+
 
