@@ -44,6 +44,8 @@ import { Route as AdminShopsShopIdRouteImport } from './routes/admin.shops.$shop
 import { Route as AdminReceiptsPaymentIdRouteImport } from './routes/admin.receipts.$paymentId'
 import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
 import { Route as ApiPublicBkashCallbackRouteImport } from './routes/api/public/bkash/callback'
+import { Route as AdminReceiptsEnPaymentIdRouteImport } from './routes/admin.receipts.en.$paymentId'
+import { Route as AdminInvoicesEnSubscriptionIdRouteImport } from './routes/admin.invoices.en.$subscriptionId'
 
 const RenewRoute = RenewRouteImport.update({
   id: '/renew',
@@ -221,6 +223,18 @@ const ApiPublicBkashCallbackRoute = ApiPublicBkashCallbackRouteImport.update({
   path: '/api/public/bkash/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminReceiptsEnPaymentIdRoute =
+  AdminReceiptsEnPaymentIdRouteImport.update({
+    id: '/receipts/en/$paymentId',
+    path: '/receipts/en/$paymentId',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminInvoicesEnSubscriptionIdRoute =
+  AdminInvoicesEnSubscriptionIdRouteImport.update({
+    id: '/invoices/en/$subscriptionId',
+    path: '/invoices/en/$subscriptionId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -256,6 +270,8 @@ export interface FileRoutesByFullPath {
   '/admin/shops/': typeof AdminShopsIndexRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
   '/app/sales/': typeof AppSalesIndexRoute
+  '/admin/invoices/en/$subscriptionId': typeof AdminInvoicesEnSubscriptionIdRoute
+  '/admin/receipts/en/$paymentId': typeof AdminReceiptsEnPaymentIdRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -290,6 +306,8 @@ export interface FileRoutesByTo {
   '/admin/shops': typeof AdminShopsIndexRoute
   '/app/purchases': typeof AppPurchasesIndexRoute
   '/app/sales': typeof AppSalesIndexRoute
+  '/admin/invoices/en/$subscriptionId': typeof AdminInvoicesEnSubscriptionIdRoute
+  '/admin/receipts/en/$paymentId': typeof AdminReceiptsEnPaymentIdRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -328,6 +346,8 @@ export interface FileRoutesById {
   '/admin/shops/': typeof AdminShopsIndexRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
   '/app/sales/': typeof AppSalesIndexRoute
+  '/admin/invoices/en/$subscriptionId': typeof AdminInvoicesEnSubscriptionIdRoute
+  '/admin/receipts/en/$paymentId': typeof AdminReceiptsEnPaymentIdRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
   '/api/public/cron/expiry-check': typeof ApiPublicCronExpiryCheckRoute
 }
@@ -367,6 +387,8 @@ export interface FileRouteTypes {
     | '/admin/shops/'
     | '/app/purchases/'
     | '/app/sales/'
+    | '/admin/invoices/en/$subscriptionId'
+    | '/admin/receipts/en/$paymentId'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesByTo: FileRoutesByTo
@@ -401,6 +423,8 @@ export interface FileRouteTypes {
     | '/admin/shops'
     | '/app/purchases'
     | '/app/sales'
+    | '/admin/invoices/en/$subscriptionId'
+    | '/admin/receipts/en/$paymentId'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   id:
@@ -438,6 +462,8 @@ export interface FileRouteTypes {
     | '/admin/shops/'
     | '/app/purchases/'
     | '/app/sales/'
+    | '/admin/invoices/en/$subscriptionId'
+    | '/admin/receipts/en/$paymentId'
     | '/api/public/bkash/callback'
     | '/api/public/cron/expiry-check'
   fileRoutesById: FileRoutesById
@@ -700,6 +726,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBkashCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/receipts/en/$paymentId': {
+      id: '/admin/receipts/en/$paymentId'
+      path: '/receipts/en/$paymentId'
+      fullPath: '/admin/receipts/en/$paymentId'
+      preLoaderRoute: typeof AdminReceiptsEnPaymentIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/invoices/en/$subscriptionId': {
+      id: '/admin/invoices/en/$subscriptionId'
+      path: '/invoices/en/$subscriptionId'
+      fullPath: '/admin/invoices/en/$subscriptionId'
+      preLoaderRoute: typeof AdminInvoicesEnSubscriptionIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
@@ -728,6 +768,8 @@ interface AdminRouteChildren {
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminReceiptsPaymentIdRoute: typeof AdminReceiptsPaymentIdRoute
+  AdminInvoicesEnSubscriptionIdRoute: typeof AdminInvoicesEnSubscriptionIdRoute
+  AdminReceiptsEnPaymentIdRoute: typeof AdminReceiptsEnPaymentIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -741,6 +783,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminReceiptsPaymentIdRoute: AdminReceiptsPaymentIdRoute,
+  AdminInvoicesEnSubscriptionIdRoute: AdminInvoicesEnSubscriptionIdRoute,
+  AdminReceiptsEnPaymentIdRoute: AdminReceiptsEnPaymentIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -796,13 +840,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { Plus, Trash2, ShoppingCart } from "lucide-react";
@@ -35,8 +36,6 @@ function Page() {
   const [saleType, setSaleType] = useState<SaleType>("cash");
   const [note, setNote] = useState("");
   const [lines, setLines] = useState<Line[]>([]);
-  const [productPick, setProductPick] = useState("");
-  const [search, setSearch] = useState("");
 
   const [installments, setInstallments] = useState(3);
   const [instFreq, setInstFreq] = useState<"weekly" | "monthly">("monthly");
@@ -46,14 +45,6 @@ function Page() {
   const total = Math.max(0, subtotal - discount);
   const effectivePaid = saleType === "cash" ? total : paid;
   const due = Math.max(0, total - effectivePaid);
-
-  const filteredProducts = useMemo(() => {
-    const s = search.toLowerCase().trim();
-    if (!s) return prod.data ?? [];
-    return (prod.data ?? []).filter((p: any) =>
-      p.name.toLowerCase().includes(s) || (p.sku ?? "").toLowerCase().includes(s) || (p.barcode ?? "").includes(s)
-    );
-  }, [search, prod.data]);
 
   const addProduct = (pid: string) => {
     if (!pid) return;
@@ -73,8 +64,6 @@ function Page() {
         name: p.name, unit: p.unit?.short_name,
       }]);
     }
-    setProductPick("");
-    setSearch("");
   };
 
   const updateLine = (i: number, patch: Partial<Line>) => {
@@ -136,30 +125,39 @@ function Page() {
         </div>
         <div>
           <Label>কাস্টমার {saleType !== "cash" && <span className="text-destructive">*</span>}</Label>
-          <Select value={customerId} onValueChange={setCustomerId}>
-            <SelectTrigger><SelectValue placeholder={saleType === "cash" ? "Walk-in (ঐচ্ছিক)" : "বাছাই করুন"} /></SelectTrigger>
-            <SelectContent>
-              {cust.data?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}{c.phone ? ` — ${c.phone}` : ""}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={customerId}
+            onChange={setCustomerId}
+            placeholder={saleType === "cash" ? "Walk-in (ঐচ্ছিক)" : "বাছাই করুন"}
+            searchPlaceholder="নাম / ফোন সার্চ..."
+            options={(cust.data ?? []).map((c: any) => ({
+              value: c.id,
+              label: c.name,
+              hint: c.phone ?? "",
+              keywords: `${c.name} ${c.phone ?? ""}`,
+            }))}
+          />
         </div>
         <div><Label>ইনভয়েস নং</Label><Input value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} placeholder="স্বয়ংক্রিয় হলে ফাঁকা রাখুন" /></div>
         <div><Label>তারিখ</Label><Input type="date" value={saleDate} onChange={(e) => setSaleDate(e.target.value)} /></div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border bg-card">
-        <div className="grid gap-2 border-b p-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)]">
-          <Input placeholder="পণ্য নাম / SKU / বারকোড দিয়ে খুঁজুন" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <Select value={productPick} onValueChange={addProduct}>
-            <SelectTrigger><SelectValue placeholder="বাছাই করে যোগ করুন" /></SelectTrigger>
-            <SelectContent>
-              {filteredProducts.slice(0, 50).map((p: any) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name} — স্টক {Number(p.stock_quantity).toFixed(2)} • ৳{Number(p.sale_price).toFixed(2)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="border-b p-4">
+          <Label className="mb-1 block">পণ্য যোগ করুন</Label>
+          <SearchableSelect
+            value=""
+            onChange={(v) => addProduct(v)}
+            placeholder="পণ্য বাছাই করে যোগ করুন"
+            searchPlaceholder="নাম / SKU / বারকোড..."
+            clearOnSelect
+            options={(prod.data ?? []).map((p: any) => ({
+              value: p.id,
+              label: p.name,
+              hint: `স্টক ${Number(p.stock_quantity).toFixed(2)} • ৳${Number(p.sale_price).toFixed(2)}`,
+              keywords: `${p.name} ${p.sku ?? ""} ${p.barcode ?? ""}`,
+            }))}
+          />
         </div>
         <table className="w-full min-w-[680px] text-sm">
           <thead className="bg-muted/50 text-left">

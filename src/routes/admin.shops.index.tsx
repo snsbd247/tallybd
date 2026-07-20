@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useMatchRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listShops, createShop, updateShopStatus, extendShopSubscription, listPackages, deleteShop } from "@/lib/admin.functions";
@@ -13,8 +13,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2, Loader2, LogIn } from "lucide-react";
+import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2, Loader2, LogIn, MoreHorizontal } from "lucide-react";
 
 export const Route = createFileRoute("/admin/shops/")({ component: ShopsPage });
 
@@ -171,24 +172,46 @@ function ShopsPage() {
                   <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
                   <td className="px-4 py-3">{s.subscription_end ? new Date(s.subscription_end).toLocaleDateString("bn-BD") : "-"}</td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-1">
-                      <ShopDetailLink shopId={s.id} />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        title="শপ হিসেবে লগইন করুন"
-                        onClick={() => loginAsShop(s.id)}
-                        disabled={impersonatingId === s.id}
-                      >
-                        {impersonatingId === s.id
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <LogIn className="h-4 w-4 text-primary" />}
-                      </Button>
-                      <Button size="sm" variant="ghost" title="১ মাস বাড়ান" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" title={s.status === "locked" ? "আনলক" : "লক"} onClick={() => toggleLock(s.id, s.status)}>
-                        {s.status === "locked" ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                      </Button>
-                      <Button size="sm" variant="ghost" title="ডিলিট" onClick={() => setDelId(s.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    <div className="flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            aria-label="অ্যাকশন মেন্যু"
+                            disabled={impersonatingId === s.id}
+                          >
+                            {impersonatingId === s.id
+                              ? <Loader2 className="h-4 w-4 animate-spin" />
+                              : <MoreHorizontal className="h-4 w-4" />}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuLabel>{s.name}</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem asChild>
+                            <Link to="/admin/shops/$shopId" params={{ shopId: s.id }} preload="intent">
+                              <Eye className="mr-2 h-4 w-4" /> বিস্তারিত
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => loginAsShop(s.id)}>
+                            <LogIn className="mr-2 h-4 w-4 text-primary" /> শপ হিসেবে লগইন
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => extend(s.id)}>
+                            <CalendarPlus className="mr-2 h-4 w-4" /> ১ মাস বাড়ান
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => toggleLock(s.id, s.status)}>
+                            {s.status === "locked"
+                              ? <><Unlock className="mr-2 h-4 w-4" /> আনলক</>
+                              : <><Lock className="mr-2 h-4 w-4" /> লক</>}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onSelect={() => setDelId(s.id)} className="text-destructive focus:text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" /> ডিলিট
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </td>
                 </tr>
@@ -225,24 +248,6 @@ function ShopsPage() {
   );
 }
 
-function ShopDetailLink({ shopId }: { shopId: string }) {
-  const matchRoute = useMatchRoute();
-  const isPending = !!matchRoute({ to: "/admin/shops/$shopId", params: { shopId }, pending: true });
-
-  return (
-    <Link
-      to="/admin/shops/$shopId"
-      params={{ shopId }}
-      preload="intent"
-      title="বিস্তারিত"
-      aria-label="দোকানের বিস্তারিত দেখুন"
-      aria-busy={isPending}
-      className={`inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent ${isPending ? "pointer-events-none opacity-60" : ""}`}
-    >
-      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-    </Link>
-  );
-}
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; variant: any }> = {

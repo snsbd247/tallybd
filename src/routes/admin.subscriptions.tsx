@@ -27,7 +27,7 @@ function Page() {
   const syncFn = useServerFn(syncExpiredShops);
 
   const openReceipt = (paymentId: string) => {
-    window.open(`/admin/receipts/${paymentId}`, "_blank", "noopener");
+    window.open(`/admin/receipts/en/${paymentId}`, "_blank", "noopener");
   };
 
   const q = useQuery({
