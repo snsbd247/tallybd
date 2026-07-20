@@ -167,7 +167,7 @@ function ShopDetail() {
               rows={(q.data?.products ?? []).map((p: any) => [
                 p.name, p.sku ?? "-",
                 <span className={Number(p.stock_quantity) <= Number(p.low_stock_alert || 0) ? "text-destructive font-semibold" : ""}>{Number(p.stock_quantity)} {p.unit?.name ?? ""}</span>,
-                bdt(p.purchase_price), bdt(p.selling_price),
+                bdt(p.purchase_price), bdt(p.sale_price),
               ])}
               empty="কোন প্রোডাক্ট নেই"
             />
