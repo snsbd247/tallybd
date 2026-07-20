@@ -139,7 +139,7 @@ function ShopsPage() {
                 <td className="px-4 py-3">{s.subscription_end ? new Date(s.subscription_end).toLocaleDateString("bn-BD") : "-"}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1">
-                    <Button asChild size="sm" variant="ghost" title="বিস্তারিত"><Link to="/admin/shops/$shopId" params={{ shopId: s.id }}><Eye className="h-4 w-4" /></Link></Button>
+                    <Link to="/admin/shops/$shopId" params={{ shopId: s.id }} title="বিস্তারিত" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent"><Eye className="h-4 w-4" /></Link>
                     <Button size="sm" variant="ghost" title="১ মাস বাড়ান" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
                     <Button size="sm" variant="ghost" title={s.status === "locked" ? "আনলক" : "লক"} onClick={() => toggleLock(s.id, s.status)}>
                       {s.status === "locked" ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
