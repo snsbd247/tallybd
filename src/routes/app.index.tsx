@@ -33,10 +33,10 @@ function ShopDashboard() {
   const overdue = (overdueQ.data as any)?.rows ?? [];
 
   const stats = [
-    { label: "আজকের বিক্রয়", value: fmt(snap?.sales_today ?? 0), icon: TrendingUp, grad: "grad-emerald", soft: "soft-emerald" },
-    { label: "এ মাসের বিক্রয়", value: fmt(snap?.sales_month ?? 0), icon: Receipt, grad: "grad-blue", soft: "soft-blue" },
-    { label: "এ মাসের ক্রয়", value: fmt(snap?.purchase_month ?? 0), icon: TrendingDown, grad: "grad-amber", soft: "soft-amber" },
-    { label: "কাস্টমার বাকি", value: fmt(snap?.customer_due ?? 0), icon: Wallet, grad: "grad-rose", soft: "soft-rose" },
+    { label: "আজকের বিক্রয়", value: fmt(snap?.sales_today ?? 0), sub: "আজকের মোট আয়", icon: TrendingUp, grad: "grad-emerald", soft: "soft-emerald" },
+    { label: "এ মাসের বিক্রয়", value: fmt(snap?.sales_month ?? 0), sub: "চলতি মাস", icon: Receipt, grad: "grad-blue", soft: "soft-blue" },
+    { label: "এ মাসের ক্রয়", value: fmt(snap?.purchase_month ?? 0), sub: "সাপ্লায়ার থেকে", icon: TrendingDown, grad: "grad-amber", soft: "soft-amber" },
+    { label: "কাস্টমার বাকি", value: fmt(snap?.customer_due ?? 0), sub: "মোট বকেয়া", icon: Wallet, grad: "grad-rose", soft: "soft-rose" },
   ];
 
   const actions = [
@@ -45,6 +45,7 @@ function ShopDashboard() {
     { to: "/app/products", label: "পণ্য", icon: Package, grad: "grad-violet" },
     { to: "/app/customers", label: "কাস্টমার", icon: Users, grad: "grad-sunset" },
   ];
+
 
   return (
     <div className="space-y-5 p-4 sm:p-6">
@@ -78,12 +79,14 @@ function ShopDashboard() {
               <div className="min-w-0">
                 <p className="truncate text-xs font-medium text-slate-700">{s.label}</p>
                 <p className="mt-2 text-2xl font-extrabold leading-tight text-slate-900">{s.value}</p>
+                <p className="mt-2 text-xs text-slate-600">{s.sub}</p>
               </div>
               <div className={`shrink-0 rounded-xl p-2.5 shadow-md ${s.grad}`}>
                 <s.icon className="h-5 w-5" />
               </div>
             </div>
           </div>
+
         ))}
       </div>
 
