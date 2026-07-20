@@ -188,23 +188,62 @@ function BrandingForm({ initial, onSave }: { initial: any; onSave: (v: any) => P
     });
   }, [initial]);
 
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+
+  const handleFile = async (key: "logo_url" | "favicon_url", file: File | null) => {
+    if (!file) return;
+    const maxKB = key === "favicon_url" ? 128 : 512;
+    if (file.size > maxKB * 1024) {
+      toast.error(`ফাইল সাইজ ${maxKB}KB এর কম হতে হবে`);
+      return;
+    }
+    const dataUrl = await fileToDataUrl(file);
+    setF((prev) => ({ ...prev, [key]: dataUrl }));
+    toast.success("ছবি লোড হয়েছে — সেভ করুন");
+  };
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="mt-4 max-w-3xl space-y-4 rounded-lg border bg-card p-4 sm:p-6">
-      {f.logo_url && (
-        <div className="flex items-center gap-3 rounded-md border bg-muted/30 p-3">
-          <img src={f.logo_url} alt="logo preview" className="h-14 w-14 rounded object-contain" />
-          <div className="text-sm">
-            <div className="font-semibold">{f.site_name || "Supershop"}</div>
-            {f.tagline && <div className="text-xs text-muted-foreground">{f.tagline}</div>}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-md border bg-muted/30 p-3">
+          <Label>লোগো</Label>
+          <div className="mt-2 flex items-center gap-3">
+            {f.logo_url ? (
+              <img src={f.logo_url} alt="logo" className="h-16 w-16 rounded object-contain bg-white p-1 border" />
+            ) : (
+              <div className="h-16 w-16 rounded border bg-muted flex items-center justify-center text-xs text-muted-foreground">নেই</div>
+            )}
+            <div className="flex-1 space-y-2">
+              <Input type="file" accept="image/*" onChange={(e) => handleFile("logo_url", e.target.files?.[0] ?? null)} />
+              {f.logo_url && <Button type="button" variant="ghost" size="sm" onClick={() => setF({ ...f, logo_url: "" })}>মুছুন</Button>}
+            </div>
           </div>
         </div>
-      )}
+        <div className="rounded-md border bg-muted/30 p-3">
+          <Label>ফেভিকন (ব্রাউজার ট্যাব আইকন)</Label>
+          <div className="mt-2 flex items-center gap-3">
+            {f.favicon_url ? (
+              <img src={f.favicon_url} alt="favicon" className="h-10 w-10 rounded object-contain bg-white p-1 border" />
+            ) : (
+              <div className="h-10 w-10 rounded border bg-muted flex items-center justify-center text-[10px] text-muted-foreground">নেই</div>
+            )}
+            <div className="flex-1 space-y-2">
+              <Input type="file" accept="image/png,image/x-icon,image/svg+xml,image/jpeg" onChange={(e) => handleFile("favicon_url", e.target.files?.[0] ?? null)} />
+              {f.favicon_url && <Button type="button" variant="ghost" size="sm" onClick={() => setF({ ...f, favicon_url: "" })}>মুছুন</Button>}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div><Label>সাইটের নাম *</Label><Input required value={f.site_name} onChange={(e) => setF({ ...f, site_name: e.target.value })} /></div>
         <div><Label>ট্যাগলাইন</Label><Input value={f.tagline} onChange={(e) => setF({ ...f, tagline: e.target.value })} /></div>
-        <div><Label>লোগো URL</Label><Input value={f.logo_url} onChange={(e) => setF({ ...f, logo_url: e.target.value })} placeholder="https://..." /></div>
-        <div><Label>ফেভিকন URL</Label><Input value={f.favicon_url} onChange={(e) => setF({ ...f, favicon_url: e.target.value })} placeholder="https://..." /></div>
       </div>
 
       <div className="border-t pt-4">
@@ -224,3 +263,4 @@ function BrandingForm({ initial, onSave }: { initial: any; onSave: (v: any) => P
     </form>
   );
 }
+
