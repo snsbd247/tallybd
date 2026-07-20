@@ -43,7 +43,8 @@ function SettingsPage() {
 
         <TabsContent value="branding">
           <BrandingForm initial={brand.data} onSave={async (v) => {
-            await brandSaveFn({ data: v }); toast.success("ব্র্যান্ডিং সেভ হয়েছে"); qc.invalidateQueries({ queryKey: ["branding"] });
+            await brandSaveFn({ data: v });
+            await qc.invalidateQueries({ queryKey: ["branding"] });
           }} />
         </TabsContent>
 
