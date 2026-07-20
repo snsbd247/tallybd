@@ -79,8 +79,11 @@ function Page() {
     }
   };
 
+  const q = useQuery({
+    queryKey: ["admin-payments", tab],
     queryFn: () => listFn({ data: { status: tab } }),
   });
+
 
   const approve = useMutation({
     mutationFn: (id: string) => approveFn({ data: { payment_id: id } }),
