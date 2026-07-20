@@ -16,16 +16,32 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { useState } from "react";
-import { ArrowLeft, Pencil, Trash2, Lock, Unlock, CalendarPlus, ArrowUpCircle, KeyRound, UserX } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import { ArrowLeft, Pencil, Trash2, Lock, Unlock, CalendarPlus, ArrowUpCircle, KeyRound, UserX, Search, Inbox, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 
-export const Route = createFileRoute("/admin/shops/$shopId")({ component: ShopDetail });
+const searchSchema = z.object({
+  tab: fallback(z.string(), "customers").default("customers"),
+  q: fallback(z.string(), "").default(""),
+  page: fallback(z.number().int(), 1).default(1),
+  stockFilter: fallback(z.string(), "all").default("all"),
+  payStatus: fallback(z.string(), "all").default("all"),
+  subStatus: fallback(z.string(), "all").default("all"),
+});
+
+export const Route = createFileRoute("/admin/shops/$shopId")({
+  component: ShopDetail,
+  validateSearch: zodValidator(searchSchema),
+});
 
 const bdt = (n: number | string) => `৳${Number(n || 0).toLocaleString("bn-BD")}`;
+const PAGE_SIZE = 10;
 
 function ShopDetail() {
   const { shopId } = Route.useParams();
-  const navigate = useNavigate();
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/admin/shops/$shopId" });
   const qc = useQueryClient();
   const getFn = useServerFn(getShopDetail);
   const updateFn = useServerFn(updateShop);
@@ -37,7 +53,12 @@ function ShopDetail() {
   const resetPwFn = useServerFn(resetShopUserPassword);
   const removeUserFn = useServerFn(removeShopUser);
 
-  const q = useQuery({ queryKey: ["shop-detail", shopId], queryFn: () => getFn({ data: { shop_id: shopId } }) });
+  const q = useQuery({
+    queryKey: ["shop-detail", shopId],
+    queryFn: () => getFn({ data: { shop_id: shopId } }),
+    refetchOnWindowFocus: true,
+    refetchInterval: 60_000,
+  });
   const pkgs = useQuery({ queryKey: ["packages"], queryFn: () => pkgsFn() });
 
   const [editOpen, setEditOpen] = useState(false);
@@ -52,6 +73,8 @@ function ShopDetail() {
   const t = q.data?.totals;
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["shop-detail", shopId] });
+  const setSearch = (patch: Partial<z.infer<typeof searchSchema>>) =>
+    navigate({ search: (prev) => ({ ...prev, ...patch }), params: { shopId }, replace: true });
 
   const openEdit = () => {
     if (!shop) return;
@@ -86,11 +109,36 @@ function ShopDetail() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Filtered/paginated collections (declared before early-returns to keep hook order stable)
+  const qLower = search.q.trim().toLowerCase();
+  const match = (s: any) => !qLower || String(s ?? "").toLowerCase().includes(qLower);
+
+  const filteredCustomers = useMemo(() => (q.data?.customers ?? []).filter((c: any) => match(c.name) || match(c.phone)), [q.data, qLower]);
+  const filteredSuppliers = useMemo(() => (q.data?.suppliers ?? []).filter((s: any) => match(s.name) || match(s.phone)), [q.data, qLower]);
+  const filteredProducts = useMemo(() => (q.data?.products ?? []).filter((p: any) => {
+    const okQ = match(p.name) || match(p.sku);
+    const low = Number(p.stock_quantity) <= Number(p.low_stock_alert || 0);
+    const okS = search.stockFilter === "all" || (search.stockFilter === "low" ? low : !low);
+    return okQ && okS;
+  }), [q.data, qLower, search.stockFilter]);
+  const filteredSubs = useMemo(() => (q.data?.subscriptions ?? []).filter((s: any) => {
+    const okQ = match(s.package?.name) || match(s.status);
+    const okS = search.subStatus === "all" || s.status === search.subStatus;
+    return okQ && okS;
+  }), [q.data, qLower, search.subStatus]);
+  const filteredPayments = useMemo(() => (q.data?.payments ?? []).filter((p: any) => {
+    const okQ = match(p.transaction_id) || match(p.payment_method);
+    const okS = search.payStatus === "all" || p.status === search.payStatus;
+    return okQ && okS;
+  }), [q.data, qLower, search.payStatus]);
+  const filteredUsers = useMemo(() => (q.data?.users ?? []).filter((u: any) => match(u.email) || match(u.role)), [q.data, qLower]);
+
   if (q.isLoading) return <AdminShell><div className="p-6">লোড হচ্ছে...</div></AdminShell>;
   if (q.error) return <AdminShell><div className="p-6 text-destructive">{(q.error as Error).message}</div></AdminShell>;
   if (!shop) return <AdminShell><div className="p-6">দোকান পাওয়া যায়নি</div></AdminShell>;
 
   const activeSub = q.data?.subscriptions?.find((s: any) => s.status === "active");
+  const page = Math.max(1, search.page);
 
   return (
     <AdminShell>
@@ -105,6 +153,9 @@ function ShopDetail() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={() => q.refetch()} disabled={q.isFetching}>
+              <RefreshCw className={`mr-1 h-4 w-4 ${q.isFetching ? "animate-spin" : ""}`} />রিফ্রেশ
+            </Button>
             <Button size="sm" variant="outline" onClick={() => extendFn({ data: { shop_id: shopId, months: 1 } }).then(() => { toast.success("১ মাস বাড়ানো হলো"); invalidate(); })}>
               <CalendarPlus className="mr-1 h-4 w-4" /> ১ মাস
             </Button>
@@ -145,7 +196,7 @@ function ShopDetail() {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="customers" className="w-full">
+        <Tabs value={search.tab} onValueChange={(v) => setSearch({ tab: v, page: 1 })} className="w-full">
           <TabsList className="flex flex-wrap">
             <TabsTrigger value="customers">কাস্টমার ({t?.customersCount ?? 0})</TabsTrigger>
             <TabsTrigger value="suppliers">সাপ্লায়ার ({t?.suppliersCount ?? 0})</TabsTrigger>
@@ -156,84 +207,146 @@ function ShopDetail() {
           </TabsList>
 
           <TabsContent value="customers">
-            <TableCard headers={["নাম", "ফোন", "বর্তমান বাকি"]} rows={(q.data?.customers ?? []).map((c: any) => [c.name, c.phone ?? "-", bdt(c.current_balance)])} empty="কোন কাস্টমার নেই" />
+            <TabToolbar q={search.q} onQ={(v) => setSearch({ q: v, page: 1 })} placeholder="নাম বা ফোন সার্চ..." total={filteredCustomers.length} />
+            <PaginatedTable
+              headers={["নাম", "ফোন", "বর্তমান বাকি"]}
+              rows={filteredCustomers.map((c: any) => [c.name, c.phone ?? "-", bdt(c.current_balance)])}
+              empty="কোন কাস্টমার নেই" page={page} onPage={(p) => setSearch({ page: p })}
+            />
           </TabsContent>
+
           <TabsContent value="suppliers">
-            <TableCard headers={["নাম", "ফোন", "বর্তমান বাকি"]} rows={(q.data?.suppliers ?? []).map((s: any) => [s.name, s.phone ?? "-", bdt(s.current_balance)])} empty="কোন সাপ্লায়ার নেই" />
+            <TabToolbar q={search.q} onQ={(v) => setSearch({ q: v, page: 1 })} placeholder="নাম বা ফোন সার্চ..." total={filteredSuppliers.length} />
+            <PaginatedTable
+              headers={["নাম", "ফোন", "বর্তমান বাকি"]}
+              rows={filteredSuppliers.map((s: any) => [s.name, s.phone ?? "-", bdt(s.current_balance)])}
+              empty="কোন সাপ্লায়ার নেই" page={page} onPage={(p) => setSearch({ page: p })}
+            />
           </TabsContent>
+
           <TabsContent value="products">
-            <TableCard
+            <TabToolbar q={search.q} onQ={(v) => setSearch({ q: v, page: 1 })} placeholder="নাম বা SKU সার্চ..." total={filteredProducts.length}
+              extra={
+                <Select value={search.stockFilter} onValueChange={(v) => setSearch({ stockFilter: v, page: 1 })}>
+                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">সব স্টক</SelectItem>
+                    <SelectItem value="low">লো স্টক</SelectItem>
+                    <SelectItem value="ok">পর্যাপ্ত</SelectItem>
+                  </SelectContent>
+                </Select>
+              }
+            />
+            <PaginatedTable
               headers={["নাম", "SKU", "স্টক", "ক্রয়মূল্য", "বিক্রয়মূল্য"]}
-              rows={(q.data?.products ?? []).map((p: any) => [
+              rows={filteredProducts.map((p: any) => [
                 p.name, p.sku ?? "-",
                 <span className={Number(p.stock_quantity) <= Number(p.low_stock_alert || 0) ? "text-destructive font-semibold" : ""}>{Number(p.stock_quantity)} {p.unit?.name ?? ""}</span>,
                 bdt(p.purchase_price), bdt(p.sale_price),
               ])}
-              empty="কোন প্রোডাক্ট নেই"
+              empty="কোন প্রোডাক্ট নেই" page={page} onPage={(p) => setSearch({ page: p })}
             />
           </TabsContent>
+
           <TabsContent value="subs">
-            <Card className="p-4">
-              <div className="space-y-2 text-sm">
-                {q.data?.subscriptions?.length === 0 && <p className="text-muted-foreground">কোন সাবস্ক্রিপশন নেই</p>}
-                {q.data?.subscriptions?.map((s: any) => (
-                  <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded border p-3">
-                    <div>
-                      <div className="font-medium">{s.package?.name} <span className="text-xs text-muted-foreground">({s.billing_cycle === "yearly" ? "বাৎসরিক" : "মাসিক"})</span></div>
-                      <div className="text-xs text-muted-foreground">{new Date(s.starts_at).toLocaleDateString("bn-BD")} → {new Date(s.ends_at).toLocaleDateString("bn-BD")}</div>
+            <TabToolbar q={search.q} onQ={(v) => setSearch({ q: v, page: 1 })} placeholder="প্যাকেজ বা স্ট্যাটাস..." total={filteredSubs.length}
+              extra={
+                <Select value={search.subStatus} onValueChange={(v) => setSearch({ subStatus: v, page: 1 })}>
+                  <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">সব</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              }
+            />
+            {filteredSubs.length === 0 ? (
+              <EmptyCard label="কোন সাবস্ক্রিপশন নেই" />
+            ) : (
+              <Card className="p-4">
+                <div className="space-y-2 text-sm">
+                  {paginate(filteredSubs, page).map((s: any) => (
+                    <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded border p-3">
+                      <div>
+                        <div className="font-medium">{s.package?.name} <span className="text-xs text-muted-foreground">({s.billing_cycle === "yearly" ? "বাৎসরিক" : "মাসিক"})</span></div>
+                        <div className="text-xs text-muted-foreground">{new Date(s.starts_at).toLocaleDateString("bn-BD")} → {new Date(s.ends_at).toLocaleDateString("bn-BD")}</div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold">{bdt(s.amount)}</span>
+                        <Badge variant={s.status === "active" ? "default" : "secondary"}>{s.status}</Badge>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold">{bdt(s.amount)}</span>
-                      <Badge variant={s.status === "active" ? "default" : "secondary"}>{s.status}</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+                  ))}
+                </div>
+                <Pager page={page} total={filteredSubs.length} onPage={(p) => setSearch({ page: p })} />
+              </Card>
+            )}
           </TabsContent>
+
           <TabsContent value="payments">
-            <TableCard
+            <TabToolbar q={search.q} onQ={(v) => setSearch({ q: v, page: 1 })} placeholder="TrxID বা মেথড..." total={filteredPayments.length}
+              extra={
+                <Select value={search.payStatus} onValueChange={(v) => setSearch({ payStatus: v, page: 1 })}>
+                  <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">সব</SelectItem>
+                    <SelectItem value="success">Success</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+              }
+            />
+            <PaginatedTable
               headers={["তারিখ", "TrxID", "মেথড", "এমাউন্ট", "স্ট্যাটাস"]}
-              rows={(q.data?.payments ?? []).map((p: any) => [
+              rows={filteredPayments.map((p: any) => [
                 new Date(p.created_at).toLocaleDateString("bn-BD"),
                 <span className="font-mono text-xs">{p.transaction_id ?? "-"}</span>,
                 p.payment_method ?? "-",
                 bdt(p.amount),
                 <Badge variant={p.status === "success" ? "default" : p.status === "pending" ? "secondary" : "destructive"}>{p.status}</Badge>,
               ])}
-              empty="কোন পেমেন্ট নেই"
+              empty="কোন পেমেন্ট নেই" page={page} onPage={(p) => setSearch({ page: p })}
             />
           </TabsContent>
+
           <TabsContent value="users">
-            <Card className="overflow-x-auto">
-              <table className="w-full min-w-[600px] text-sm">
-                <thead className="bg-muted/50 text-left"><tr>
-                  <th className="p-3">ইমেইল</th><th className="p-3">রোল</th><th className="p-3">তৈরি</th><th className="p-3 text-right">অ্যাকশন</th>
-                </tr></thead>
-                <tbody>
-                  {q.data?.users?.length === 0 && (<tr><td colSpan={4} className="p-6 text-center text-muted-foreground">কোন ইউজার নেই</td></tr>)}
-                  {q.data?.users?.map((u: any) => (
-                    <tr key={u.id} className="border-t">
-                      <td className="p-3">{u.email ?? "-"}</td>
-                      <td className="p-3"><Badge variant="outline">{u.role}</Badge></td>
-                      <td className="p-3 text-xs text-muted-foreground">{u.created_at ? new Date(u.created_at).toLocaleDateString("bn-BD") : "-"}</td>
-                      <td className="p-3">
-                        <div className="flex justify-end gap-2">
-                          <Button size="sm" variant="outline" onClick={() => { setPwOpen({ user_id: u.user_id, email: u.email }); setNewPw(Math.random().toString(36).slice(-8)); }}>
-                            <KeyRound className="mr-1 h-3 w-3" />পাসওয়ার্ড
-                          </Button>
-                          {u.role !== "shop_owner" && (
-                            <Button size="sm" variant="ghost" onClick={async () => { await removeUserFn({ data: { user_id: u.user_id, shop_id: shopId } }); toast.success("রিমুভ"); invalidate(); }}>
-                              <UserX className="h-3 w-3 text-destructive" />
+            <TabToolbar q={search.q} onQ={(v) => setSearch({ q: v, page: 1 })} placeholder="ইমেইল বা রোল..." total={filteredUsers.length} />
+            {filteredUsers.length === 0 ? (
+              <EmptyCard label="কোন ইউজার নেই" />
+            ) : (
+              <Card className="overflow-x-auto">
+                <table className="w-full min-w-[600px] text-sm">
+                  <thead className="bg-muted/50 text-left"><tr>
+                    <th className="p-3">ইমেইল</th><th className="p-3">রোল</th><th className="p-3">তৈরি</th><th className="p-3 text-right">অ্যাকশন</th>
+                  </tr></thead>
+                  <tbody>
+                    {paginate(filteredUsers, page).map((u: any) => (
+                      <tr key={u.id} className="border-t">
+                        <td className="p-3">{u.email ?? "-"}</td>
+                        <td className="p-3"><Badge variant="outline">{u.role}</Badge></td>
+                        <td className="p-3 text-xs text-muted-foreground">{u.created_at ? new Date(u.created_at).toLocaleDateString("bn-BD") : "-"}</td>
+                        <td className="p-3">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" onClick={() => { setPwOpen({ user_id: u.user_id, email: u.email }); setNewPw(Math.random().toString(36).slice(-8)); }}>
+                              <KeyRound className="mr-1 h-3 w-3" />পাসওয়ার্ড
                             </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
+                            {u.role !== "shop_owner" && (
+                              <Button size="sm" variant="ghost" onClick={async () => { await removeUserFn({ data: { user_id: u.user_id, shop_id: shopId } }); toast.success("রিমুভ"); invalidate(); }}>
+                                <UserX className="h-3 w-3 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <Pager page={page} total={filteredUsers.length} onPage={(p) => setSearch({ page: p })} />
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -329,6 +442,11 @@ function ShopDetail() {
   );
 }
 
+function paginate<T>(arr: T[], page: number): T[] {
+  const start = (page - 1) * PAGE_SIZE;
+  return arr.slice(start, start + PAGE_SIZE);
+}
+
 function StatCard({ label, value, tone }: { label: string; value: string; tone: string }) {
   return (
     <Card className="p-4">
@@ -338,18 +456,61 @@ function StatCard({ label, value, tone }: { label: string; value: string; tone: 
   );
 }
 
-function TableCard({ headers, rows, empty }: { headers: string[]; rows: any[][]; empty: string }) {
+function TabToolbar({ q, onQ, placeholder, total, extra }: { q: string; onQ: (v: string) => void; placeholder: string; total: number; extra?: ReactNode }) {
   return (
-    <Card className="overflow-x-auto">
-      <table className="w-full min-w-[500px] text-sm">
-        <thead className="bg-muted/50 text-left"><tr>{headers.map((h) => <th key={h} className="p-3">{h}</th>)}</tr></thead>
-        <tbody>
-          {rows.length === 0 && (<tr><td colSpan={headers.length} className="p-6 text-center text-muted-foreground">{empty}</td></tr>)}
-          {rows.map((r, i) => (
-            <tr key={i} className="border-t">{r.map((c, j) => <td key={j} className="p-3">{c}</td>)}</tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="my-3 flex flex-wrap items-center gap-2">
+      <div className="relative flex-1 min-w-[200px]">
+        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input value={q} onChange={(e) => onQ(e.target.value)} placeholder={placeholder} className="pl-8" />
+      </div>
+      {extra}
+      <div className="text-xs text-muted-foreground">মোট: <span className="font-semibold">{total.toLocaleString("bn-BD")}</span></div>
+    </div>
+  );
+}
+
+function EmptyCard({ label }: { label: string }) {
+  return (
+    <Card className="flex flex-col items-center justify-center gap-2 p-10 text-center">
+      <div className="rounded-full bg-muted p-3"><Inbox className="h-6 w-6 text-muted-foreground" /></div>
+      <div className="text-sm text-muted-foreground">{label}</div>
+    </Card>
+  );
+}
+
+function Pager({ page, total, onPage }: { page: number; total: number; onPage: (p: number) => void }) {
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (pages <= 1) return null;
+  const from = (page - 1) * PAGE_SIZE + 1;
+  const to = Math.min(page * PAGE_SIZE, total);
+  return (
+    <div className="flex items-center justify-between gap-2 border-t p-3 text-xs text-muted-foreground">
+      <span>{from}-{to} / {total}</span>
+      <div className="flex items-center gap-1">
+        <Button size="icon" variant="outline" className="h-7 w-7" disabled={page <= 1} onClick={() => onPage(page - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+        <span className="px-2">পেজ {page} / {pages}</span>
+        <Button size="icon" variant="outline" className="h-7 w-7" disabled={page >= pages} onClick={() => onPage(page + 1)}><ChevronRight className="h-4 w-4" /></Button>
+      </div>
+    </div>
+  );
+}
+
+function PaginatedTable({ headers, rows, empty, page, onPage }: { headers: string[]; rows: any[][]; empty: string; page: number; onPage: (p: number) => void }) {
+  if (rows.length === 0) return <EmptyCard label={empty} />;
+  const slice = paginate(rows, page);
+  return (
+    <Card className="overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[500px] text-sm">
+          <thead className="bg-muted/50 text-left"><tr>{headers.map((h) => <th key={h} className="p-3">{h}</th>)}</tr></thead>
+          <tbody>
+            {slice.map((r, i) => (
+              <tr key={i} className="border-t">{r.map((c, j) => <td key={j} className="p-3">{c}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Pager page={page} total={rows.length} onPage={onPage} />
     </Card>
   );
 }
