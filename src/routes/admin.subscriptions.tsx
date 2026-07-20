@@ -14,8 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Check, X, RefreshCw, Download } from "lucide-react";
-import jsPDF from "jspdf";
+import { Check, X, RefreshCw, Printer } from "lucide-react";
 
 export const Route = createFileRoute("/admin/subscriptions")({ component: Page });
 
