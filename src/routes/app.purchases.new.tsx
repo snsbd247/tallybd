@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
@@ -79,12 +80,18 @@ function Page() {
       <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-4 md:grid-cols-4">
         <div>
           <Label>সাপ্লায়ার</Label>
-          <Select value={supplierId} onValueChange={setSupplierId}>
-            <SelectTrigger><SelectValue placeholder="বাছাই করুন" /></SelectTrigger>
-            <SelectContent>
-              {supp.data?.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={supplierId}
+            onChange={setSupplierId}
+            placeholder="বাছাই করুন"
+            searchPlaceholder="নাম / ফোন সার্চ..."
+            options={(supp.data ?? []).map((s: any) => ({
+              value: s.id,
+              label: s.name,
+              hint: s.phone ?? "",
+              keywords: `${s.name} ${s.phone ?? ""}`,
+            }))}
+          />
         </div>
         <div><Label>ইনভয়েস নং</Label><Input value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} /></div>
         <div><Label>তারিখ</Label><Input type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} /></div>
@@ -121,12 +128,18 @@ function Page() {
             {lines.map((l, i) => (
               <tr key={i} className="border-t">
                 <td className="px-3 py-2">
-                  <Select value={l.product_id} onValueChange={(v) => updateLine(i, { product_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="পণ্য বাছাই" /></SelectTrigger>
-                    <SelectContent>
-                      {prod.data?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    value={l.product_id}
+                    onChange={(v) => updateLine(i, { product_id: v })}
+                    placeholder="পণ্য বাছাই"
+                    searchPlaceholder="নাম / SKU..."
+                    options={(prod.data ?? []).map((p: any) => ({
+                      value: p.id,
+                      label: p.name,
+                      hint: `স্টক ${Number(p.stock_quantity ?? 0)}`,
+                      keywords: `${p.name} ${p.sku ?? ""} ${p.barcode ?? ""}`,
+                    }))}
+                  />
                 </td>
                 <td className="px-3 py-2"><Input type="number" step="0.001" value={l.quantity} onChange={(e) => updateLine(i, { quantity: Number(e.target.value) })} /></td>
                 <td className="px-3 py-2"><Input type="number" step="0.01" value={l.unit_cost} onChange={(e) => updateLine(i, { unit_cost: Number(e.target.value) })} /></td>
