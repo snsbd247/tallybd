@@ -81,12 +81,6 @@ function Landing() {
             <Link to="/login">
               <Button variant="ghost" size="sm" className="px-2 sm:px-3">লগিন</Button>
             </Link>
-            <Link to="/admin/login">
-              <Button variant="outline" size="sm" className="px-2 sm:px-3">
-                <ShieldCheck className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">সুপার এডমিন</span>
-              </Button>
-            </Link>
           </nav>
         </div>
       </header>
