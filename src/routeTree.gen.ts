@@ -34,6 +34,7 @@ import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AppSalesIndexRouteImport } from './routes/app.sales.index'
 import { Route as AppPurchasesIndexRouteImport } from './routes/app.purchases.index'
+import { Route as AdminShopsIndexRouteImport } from './routes/admin.shops.index'
 import { Route as AppSalesNewRouteImport } from './routes/app.sales.new'
 import { Route as AppSalesSaleIdRouteImport } from './routes/app.sales.$saleId'
 import { Route as AppPurchasesNewRouteImport } from './routes/app.purchases.new'
@@ -167,6 +168,11 @@ const AppPurchasesIndexRoute = AppPurchasesIndexRouteImport.update({
   path: '/purchases/',
   getParentRoute: () => AppRoute,
 } as any)
+const AdminShopsIndexRoute = AdminShopsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminShopsRoute,
+} as any)
 const AppSalesNewRoute = AppSalesNewRouteImport.update({
   id: '/sales/new',
   path: '/sales/new',
@@ -233,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/sales/$saleId': typeof AppSalesSaleIdRoute
   '/app/sales/new': typeof AppSalesNewRoute
+  '/admin/shops/': typeof AdminShopsIndexRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
   '/app/sales/': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
@@ -246,7 +253,6 @@ export interface FileRoutesByTo {
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/setup': typeof AdminSetupRoute
-  '/admin/shops': typeof AdminShopsRouteWithChildren
   '/admin/sms-logs': typeof AdminSmsLogsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/categories': typeof AppCategoriesRoute
@@ -265,6 +271,7 @@ export interface FileRoutesByTo {
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/sales/$saleId': typeof AppSalesSaleIdRoute
   '/app/sales/new': typeof AppSalesNewRoute
+  '/admin/shops': typeof AdminShopsIndexRoute
   '/app/purchases': typeof AppPurchasesIndexRoute
   '/app/sales': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
@@ -300,6 +307,7 @@ export interface FileRoutesById {
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/sales/$saleId': typeof AppSalesSaleIdRoute
   '/app/sales/new': typeof AppSalesNewRoute
+  '/admin/shops/': typeof AdminShopsIndexRoute
   '/app/purchases/': typeof AppPurchasesIndexRoute
   '/app/sales/': typeof AppSalesIndexRoute
   '/api/public/bkash/callback': typeof ApiPublicBkashCallbackRoute
@@ -336,6 +344,7 @@ export interface FileRouteTypes {
     | '/app/purchases/new'
     | '/app/sales/$saleId'
     | '/app/sales/new'
+    | '/admin/shops/'
     | '/app/purchases/'
     | '/app/sales/'
     | '/api/public/bkash/callback'
@@ -349,7 +358,6 @@ export interface FileRouteTypes {
     | '/admin/packages'
     | '/admin/settings'
     | '/admin/setup'
-    | '/admin/shops'
     | '/admin/sms-logs'
     | '/admin/subscriptions'
     | '/app/categories'
@@ -368,6 +376,7 @@ export interface FileRouteTypes {
     | '/app/purchases/new'
     | '/app/sales/$saleId'
     | '/app/sales/new'
+    | '/admin/shops'
     | '/app/purchases'
     | '/app/sales'
     | '/api/public/bkash/callback'
@@ -402,6 +411,7 @@ export interface FileRouteTypes {
     | '/app/purchases/new'
     | '/app/sales/$saleId'
     | '/app/sales/new'
+    | '/admin/shops/'
     | '/app/purchases/'
     | '/app/sales/'
     | '/api/public/bkash/callback'
@@ -595,6 +605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPurchasesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/admin/shops/': {
+      id: '/admin/shops/'
+      path: '/'
+      fullPath: '/admin/shops/'
+      preLoaderRoute: typeof AdminShopsIndexRouteImport
+      parentRoute: typeof AdminShopsRoute
+    }
     '/app/sales/new': {
       id: '/app/sales/new'
       path: '/sales/new'
@@ -649,10 +666,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminShopsRouteChildren {
   AdminShopsShopIdRoute: typeof AdminShopsShopIdRoute
+  AdminShopsIndexRoute: typeof AdminShopsIndexRoute
 }
 
 const AdminShopsRouteChildren: AdminShopsRouteChildren = {
   AdminShopsShopIdRoute: AdminShopsShopIdRoute,
+  AdminShopsIndexRoute: AdminShopsIndexRoute,
 }
 
 const AdminShopsRouteWithChildren = AdminShopsRoute._addFileChildren(
@@ -735,3 +754,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
