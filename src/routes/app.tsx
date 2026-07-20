@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { LayoutDashboard, Store, LogOut, CreditCard, Package, Tag, Ruler, Boxes, Truck, ShoppingCart, Users, Receipt, CalendarClock, BarChart3, Bell, Menu, Sparkles } from "lucide-react";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 
 export const Route = createFileRoute("/app")({ ssr: false, component: AppLayout });
 
