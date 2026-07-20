@@ -48,6 +48,20 @@ function ShopDetail() {
   const getFn = useServerFn(getShopDetail);
   const updateFn = useServerFn(updateShop);
   const deleteFn = useServerFn(deleteShop);
+  const impersonateFn = useServerFn(createImpersonationToken);
+  const [impersonating, setImpersonating] = useState(false);
+  const loginAsShop = async () => {
+    const w = window.open("about:blank", "_blank");
+    setImpersonating(true);
+    try {
+      const { token } = await impersonateFn({ data: { shop_id: shopId } });
+      const url = `/impersonate?token=${encodeURIComponent(token)}`;
+      if (w) w.location.href = url; else window.open(url, "_blank");
+    } catch (e) {
+      if (w) w.close();
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    } finally { setImpersonating(false); }
+  };
   const pkgsFn = useServerFn(listPackages);
   const statusFn = useServerFn(updateShopStatus);
   const extendFn = useServerFn(extendShopSubscription);
