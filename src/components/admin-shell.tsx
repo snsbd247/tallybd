@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Store, Package, Settings, LogOut, ShieldCheck, CreditCard, MessageSquare, Menu, Sparkles, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Store, Package, Settings, LogOut, ShieldCheck, CreditCard, MessageSquare, Menu, Sparkles, ShieldAlert, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ const nav: { to: string; label: string; icon: any; color: string; exact?: boolea
   { to: "/admin/shops", label: "দোকান সমূহ", icon: Store, color: "from-emerald-400 to-teal-500" },
   { to: "/admin/subscriptions", label: "পেমেন্ট", icon: CreditCard, color: "from-amber-400 to-orange-500" },
   { to: "/admin/packages", label: "প্যাকেজ", icon: Package, color: "from-fuchsia-400 to-pink-500" },
+  { to: "/admin/admins", label: "এডমিন ইউজার", icon: Users, color: "from-indigo-400 to-violet-500" },
   { to: "/admin/sms-logs", label: "SMS লগ", icon: MessageSquare, color: "from-cyan-400 to-blue-500" },
   { to: "/admin/impersonation-logs", label: "ইম্পার্সোনেশন লগ", icon: ShieldAlert, color: "from-rose-400 to-orange-500" },
   { to: "/admin/settings", label: "সেটিংস", icon: Settings, color: "from-violet-400 to-purple-600" },

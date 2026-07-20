@@ -34,12 +34,14 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminImpersonationLogsRouteImport } from './routes/admin.impersonation-logs'
+import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
 import { Route as AppSalesIndexRouteImport } from './routes/app.sales.index'
 import { Route as AppPurchasesIndexRouteImport } from './routes/app.purchases.index'
 import { Route as AdminShopsIndexRouteImport } from './routes/admin.shops.index'
 import { Route as AppSalesNewRouteImport } from './routes/app.sales.new'
 import { Route as AppSalesSaleIdRouteImport } from './routes/app.sales.$saleId'
 import { Route as AppPurchasesNewRouteImport } from './routes/app.purchases.new'
+import { Route as AppProductsProductIdRouteImport } from './routes/app.products.$productId'
 import { Route as AdminShopsShopIdRouteImport } from './routes/admin.shops.$shopId'
 import { Route as AdminReceiptsPaymentIdRouteImport } from './routes/admin.receipts.$paymentId'
 import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
@@ -172,6 +174,11 @@ const AdminImpersonationLogsRoute = AdminImpersonationLogsRouteImport.update({
   path: '/impersonation-logs',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminsRoute = AdminAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppSalesIndexRoute = AppSalesIndexRouteImport.update({
   id: '/sales/',
   path: '/sales/',
@@ -201,6 +208,11 @@ const AppPurchasesNewRoute = AppPurchasesNewRouteImport.update({
   id: '/purchases/new',
   path: '/purchases/new',
   getParentRoute: () => AppRoute,
+} as any)
+const AppProductsProductIdRoute = AppProductsProductIdRouteImport.update({
+  id: '/$productId',
+  path: '/$productId',
+  getParentRoute: () => AppProductsRoute,
 } as any)
 const AdminShopsShopIdRoute = AdminShopsShopIdRouteImport.update({
   id: '/$shopId',
@@ -243,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/impersonate': typeof ImpersonateRoute
   '/login': typeof LoginRoute
   '/renew': typeof RenewRoute
+  '/admin/admins': typeof AdminAdminsRoute
   '/admin/impersonation-logs': typeof AdminImpersonationLogsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/packages': typeof AdminPackagesRoute
@@ -254,7 +267,7 @@ export interface FileRoutesByFullPath {
   '/app/categories': typeof AppCategoriesRoute
   '/app/customers': typeof AppCustomersRoute
   '/app/installments': typeof AppInstallmentsRoute
-  '/app/products': typeof AppProductsRoute
+  '/app/products': typeof AppProductsRouteWithChildren
   '/app/reports': typeof AppReportsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
@@ -264,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/admin/receipts/$paymentId': typeof AdminReceiptsPaymentIdRoute
   '/admin/shops/$shopId': typeof AdminShopsShopIdRoute
+  '/app/products/$productId': typeof AppProductsProductIdRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/sales/$saleId': typeof AppSalesSaleIdRoute
   '/app/sales/new': typeof AppSalesNewRoute
@@ -280,6 +294,7 @@ export interface FileRoutesByTo {
   '/impersonate': typeof ImpersonateRoute
   '/login': typeof LoginRoute
   '/renew': typeof RenewRoute
+  '/admin/admins': typeof AdminAdminsRoute
   '/admin/impersonation-logs': typeof AdminImpersonationLogsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/packages': typeof AdminPackagesRoute
@@ -290,7 +305,7 @@ export interface FileRoutesByTo {
   '/app/categories': typeof AppCategoriesRoute
   '/app/customers': typeof AppCustomersRoute
   '/app/installments': typeof AppInstallmentsRoute
-  '/app/products': typeof AppProductsRoute
+  '/app/products': typeof AppProductsRouteWithChildren
   '/app/reports': typeof AppReportsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
@@ -300,6 +315,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/admin/receipts/$paymentId': typeof AdminReceiptsPaymentIdRoute
   '/admin/shops/$shopId': typeof AdminShopsShopIdRoute
+  '/app/products/$productId': typeof AppProductsProductIdRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/sales/$saleId': typeof AppSalesSaleIdRoute
   '/app/sales/new': typeof AppSalesNewRoute
@@ -319,6 +335,7 @@ export interface FileRoutesById {
   '/impersonate': typeof ImpersonateRoute
   '/login': typeof LoginRoute
   '/renew': typeof RenewRoute
+  '/admin/admins': typeof AdminAdminsRoute
   '/admin/impersonation-logs': typeof AdminImpersonationLogsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/packages': typeof AdminPackagesRoute
@@ -330,7 +347,7 @@ export interface FileRoutesById {
   '/app/categories': typeof AppCategoriesRoute
   '/app/customers': typeof AppCustomersRoute
   '/app/installments': typeof AppInstallmentsRoute
-  '/app/products': typeof AppProductsRoute
+  '/app/products': typeof AppProductsRouteWithChildren
   '/app/reports': typeof AppReportsRoute
   '/app/stock': typeof AppStockRoute
   '/app/subscription': typeof AppSubscriptionRoute
@@ -340,6 +357,7 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/admin/receipts/$paymentId': typeof AdminReceiptsPaymentIdRoute
   '/admin/shops/$shopId': typeof AdminShopsShopIdRoute
+  '/app/products/$productId': typeof AppProductsProductIdRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/sales/$saleId': typeof AppSalesSaleIdRoute
   '/app/sales/new': typeof AppSalesNewRoute
@@ -360,6 +378,7 @@ export interface FileRouteTypes {
     | '/impersonate'
     | '/login'
     | '/renew'
+    | '/admin/admins'
     | '/admin/impersonation-logs'
     | '/admin/login'
     | '/admin/packages'
@@ -381,6 +400,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/receipts/$paymentId'
     | '/admin/shops/$shopId'
+    | '/app/products/$productId'
     | '/app/purchases/new'
     | '/app/sales/$saleId'
     | '/app/sales/new'
@@ -397,6 +417,7 @@ export interface FileRouteTypes {
     | '/impersonate'
     | '/login'
     | '/renew'
+    | '/admin/admins'
     | '/admin/impersonation-logs'
     | '/admin/login'
     | '/admin/packages'
@@ -417,6 +438,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/admin/receipts/$paymentId'
     | '/admin/shops/$shopId'
+    | '/app/products/$productId'
     | '/app/purchases/new'
     | '/app/sales/$saleId'
     | '/app/sales/new'
@@ -435,6 +457,7 @@ export interface FileRouteTypes {
     | '/impersonate'
     | '/login'
     | '/renew'
+    | '/admin/admins'
     | '/admin/impersonation-logs'
     | '/admin/login'
     | '/admin/packages'
@@ -456,6 +479,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/receipts/$paymentId'
     | '/admin/shops/$shopId'
+    | '/app/products/$productId'
     | '/app/purchases/new'
     | '/app/sales/$saleId'
     | '/app/sales/new'
@@ -656,6 +680,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonationLogsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/admins': {
+      id: '/admin/admins'
+      path: '/admins'
+      fullPath: '/admin/admins'
+      preLoaderRoute: typeof AdminAdminsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/sales/': {
       id: '/app/sales/'
       path: '/sales'
@@ -697,6 +728,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/purchases/new'
       preLoaderRoute: typeof AppPurchasesNewRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/app/products/$productId': {
+      id: '/app/products/$productId'
+      path: '/$productId'
+      fullPath: '/app/products/$productId'
+      preLoaderRoute: typeof AppProductsProductIdRouteImport
+      parentRoute: typeof AppProductsRoute
     }
     '/admin/shops/$shopId': {
       id: '/admin/shops/$shopId'
@@ -758,6 +796,7 @@ const AdminShopsRouteWithChildren = AdminShopsRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
+  AdminAdminsRoute: typeof AdminAdminsRoute
   AdminImpersonationLogsRoute: typeof AdminImpersonationLogsRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
@@ -773,6 +812,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminsRoute: AdminAdminsRoute,
   AdminImpersonationLogsRoute: AdminImpersonationLogsRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminPackagesRoute: AdminPackagesRoute,
@@ -789,11 +829,23 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface AppProductsRouteChildren {
+  AppProductsProductIdRoute: typeof AppProductsProductIdRoute
+}
+
+const AppProductsRouteChildren: AppProductsRouteChildren = {
+  AppProductsProductIdRoute: AppProductsProductIdRoute,
+}
+
+const AppProductsRouteWithChildren = AppProductsRoute._addFileChildren(
+  AppProductsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppCategoriesRoute: typeof AppCategoriesRoute
   AppCustomersRoute: typeof AppCustomersRoute
   AppInstallmentsRoute: typeof AppInstallmentsRoute
-  AppProductsRoute: typeof AppProductsRoute
+  AppProductsRoute: typeof AppProductsRouteWithChildren
   AppReportsRoute: typeof AppReportsRoute
   AppStockRoute: typeof AppStockRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
@@ -811,7 +863,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCategoriesRoute: AppCategoriesRoute,
   AppCustomersRoute: AppCustomersRoute,
   AppInstallmentsRoute: AppInstallmentsRoute,
-  AppProductsRoute: AppProductsRoute,
+  AppProductsRoute: AppProductsRouteWithChildren,
   AppReportsRoute: AppReportsRoute,
   AppStockRoute: AppStockRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,

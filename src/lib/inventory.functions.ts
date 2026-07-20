@@ -235,3 +235,28 @@ export const listStockMovements = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
+
+export const getProductDetail = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ product_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const shopId = await getShopId(context);
+    const [prod, moves] = await Promise.all([
+      context.supabase.from("products")
+        .select("*, category:categories(name), unit:units(name, short_name)")
+        .eq("id", data.product_id).eq("shop_id", shopId).single(),
+      context.supabase.from("stock_movements")
+        .select("*")
+        .eq("shop_id", shopId).eq("product_id", data.product_id)
+        .order("created_at", { ascending: false }).limit(500),
+    ]);
+    if (prod.error) throw new Error(prod.error.message);
+    const rows = (moves.data ?? []) as any[];
+    const totals = {
+      purchased: rows.filter((r) => r.movement_type === "purchase").reduce((s, r) => s + Number(r.quantity || 0), 0),
+      sold: rows.filter((r) => r.movement_type === "sale").reduce((s, r) => s + Number(r.quantity || 0), 0),
+      adjustments: rows.filter((r) => r.movement_type === "adjustment").reduce((s, r) => s + Number(r.quantity || 0), 0),
+      opening: rows.filter((r) => r.movement_type === "opening").reduce((s, r) => s + Number(r.quantity || 0), 0),
+    };
+    return { product: prod.data, movements: rows, totals };
+  });

@@ -211,3 +211,94 @@ export const getReportSnapshot = createServerFn({ method: "GET" })
       customer_due: sum(dueTotal.data, "current_balance"),
     };
   });
+
+/* -------- Extended dashboard (Phase D) -------- */
+
+export const getDashboardExtras = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const shopId = await getShopId(context);
+    const today = new Date().toISOString().slice(0, 10);
+    const monthStart = today.slice(0, 8) + "01";
+    // last 7 days range
+    const days: string[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      days.push(d.toISOString().slice(0, 10));
+    }
+    const from = days[0];
+
+    const [products, supplierDue, custIn, supOut, salesTrend, topItems, recentPurchases, monthProfit] = await Promise.all([
+      context.supabase.from("products")
+        .select("id, name, stock_quantity, low_stock_alert, sale_price, unit:units(short_name)")
+        .eq("shop_id", shopId).eq("is_active", true),
+      context.supabase.from("suppliers").select("current_balance").eq("shop_id", shopId),
+      context.supabase.from("customer_payments").select("amount, payment_method, payment_date").eq("shop_id", shopId).gte("payment_date", from).lte("payment_date", today),
+      context.supabase.from("supplier_payments").select("amount, payment_method, payment_date").eq("shop_id", shopId).gte("payment_date", from).lte("payment_date", today),
+      context.supabase.from("sales").select("sale_date, total").eq("shop_id", shopId).gte("sale_date", from).lte("sale_date", today),
+      context.supabase.from("sale_items")
+        .select("product_id, quantity, line_total, product:products(name), sale:sales!inner(sale_date, shop_id)")
+        .eq("shop_id", shopId)
+        .gte("sale.sale_date", monthStart)
+        .lte("sale.sale_date", today)
+        .limit(5000),
+      context.supabase.from("purchases").select("id, purchase_date, invoice_no, total, supplier:suppliers(name)").eq("shop_id", shopId).order("created_at", { ascending: false }).limit(5),
+      context.supabase.from("sale_items")
+        .select("quantity, unit_cost, line_total, sale:sales!inner(sale_date, shop_id)")
+        .eq("shop_id", shopId)
+        .gte("sale.sale_date", monthStart)
+        .lte("sale.sale_date", today)
+        .limit(20000),
+    ]);
+
+    const productList = (products.data ?? []) as any[];
+    const lowStock = productList.filter((p) => Number(p.stock_quantity) <= Number(p.low_stock_alert || 0));
+
+    const sum = (arr: any[] | null | undefined, k: string, filter?: (r: any) => boolean) =>
+      (arr ?? []).filter(filter ?? (() => true)).reduce((s, r) => s + (+r[k] || 0), 0);
+
+    // Sales trend by day
+    const trendMap = new Map<string, number>();
+    for (const d of days) trendMap.set(d, 0);
+    for (const r of (salesTrend.data ?? []) as any[]) {
+      const d = String(r.sale_date).slice(0, 10);
+      trendMap.set(d, (trendMap.get(d) ?? 0) + Number(r.total || 0));
+    }
+    const trend = days.map((d) => ({ date: d, total: trendMap.get(d) ?? 0 }));
+
+    // Top products this month
+    const topMap = new Map<string, { name: string; qty: number; revenue: number }>();
+    for (const it of (topItems.data ?? []) as any[]) {
+      const key = it.product_id as string;
+      const cur = topMap.get(key) ?? { name: it.product?.name ?? "-", qty: 0, revenue: 0 };
+      cur.qty += Number(it.quantity || 0);
+      cur.revenue += Number(it.line_total || 0);
+      topMap.set(key, cur);
+    }
+    const topProducts = Array.from(topMap.values()).sort((a, b) => b.qty - a.qty).slice(0, 5);
+
+    // Month profit
+    let mRev = 0, mCost = 0;
+    for (const it of (monthProfit.data ?? []) as any[]) {
+      const q = Number(it.quantity || 0);
+      mRev += Number(it.line_total || 0);
+      mCost += (it.unit_cost != null ? Number(it.unit_cost) : 0) * q;
+    }
+
+    return {
+      productsCount: productList.length,
+      lowStockCount: lowStock.length,
+      lowStock: lowStock.slice(0, 6),
+      supplierDue: sum(supplierDue.data, "current_balance"),
+      cashInToday: sum(custIn.data, "amount", (r) => r.payment_date === today && r.payment_method === "cash"),
+      bkashInToday: sum(custIn.data, "amount", (r) => r.payment_date === today && r.payment_method === "bkash"),
+      cashOutToday: sum(supOut.data, "amount", (r) => r.payment_date === today && r.payment_method === "cash"),
+      bkashOutToday: sum(supOut.data, "amount", (r) => r.payment_date === today && r.payment_method === "bkash"),
+      trend,
+      topProducts,
+      recentPurchases: recentPurchases.data ?? [],
+      monthProfit: mRev - mCost,
+      monthRevenue: mRev,
+    };
+  });

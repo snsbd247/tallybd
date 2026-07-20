@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listProducts, saveProduct, deleteProduct, listCategories, listUnits } from "@/lib/inventory.functions";
@@ -9,13 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, MoreVertical, Eye } from "lucide-react";
 
 export const Route = createFileRoute("/app/products")({ component: Page });
 
 function Page() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const listFn = useServerFn(listProducts);
   const saveFn = useServerFn(saveProduct);
@@ -106,7 +108,11 @@ function Page() {
             {filtered.map((p: any) => {
               const low = Number(p.stock_quantity) <= Number(p.low_stock_alert);
               return (
-                <tr key={p.id} className="border-b">
+                <tr
+                  key={p.id}
+                  onClick={() => navigate({ to: "/app/products/$productId", params: { productId: p.id } })}
+                  className="cursor-pointer border-b hover:bg-muted/40"
+                >
                   <td className="p-3">
                     <div className="font-medium">{p.name}</div>
                     {p.barcode && <div className="text-xs text-muted-foreground">{p.barcode}</div>}
@@ -120,9 +126,24 @@ function Page() {
                       {Number(p.stock_quantity)} {p.unit?.short_name ?? ""}
                     </Badge>
                   </td>
-                  <td className="p-3 text-right">
-                    <Button size="sm" variant="ghost" onClick={() => { setEditing(p); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => { if (confirm("মুছবেন?")) del.mutate(p.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="ghost"><MoreVertical className="h-4 w-4" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate({ to: "/app/products/$productId", params: { productId: p.id } })}>
+                          <Eye className="mr-2 h-4 w-4" /> বিস্তারিত / স্টক লেজার
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { setEditing(p); setOpen(true); }}>
+                          <Pencil className="mr-2 h-4 w-4" /> এডিট
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive" onClick={() => { if (confirm("মুছবেন?")) del.mutate(p.id); }}>
+                          <Trash2 className="mr-2 h-4 w-4" /> মুছে ফেলুন
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
                 </tr>
               );
