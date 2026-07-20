@@ -6,6 +6,7 @@ import {
   approveSubscriptionPayment,
   rejectSubscriptionPayment,
   syncExpiredShops,
+  getPaymentReceipt,
 } from "@/lib/admin.functions";
 import { AdminShell } from "@/components/admin-shell";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Check, X, RefreshCw } from "lucide-react";
+import { Check, X, RefreshCw, Download } from "lucide-react";
+import jsPDF from "jspdf";
+
 
 export const Route = createFileRoute("/admin/subscriptions")({ component: Page });
 
