@@ -165,3 +165,62 @@ function TestSmsForm() {
     </form>
   );
 }
+
+function BrandingForm({ initial, onSave }: { initial: any; onSave: (v: any) => Promise<void> }) {
+  const [f, setF] = useState({
+    site_name: "", tagline: "", logo_url: "", favicon_url: "",
+    contact_email: "", contact_phone: "", contact_address: "",
+    facebook_url: "", website_url: "", footer_note: "",
+  });
+  useEffect(() => {
+    if (!initial) return;
+    setF({
+      site_name: initial.site_name ?? "",
+      tagline: initial.tagline ?? "",
+      logo_url: initial.logo_url ?? "",
+      favicon_url: initial.favicon_url ?? "",
+      contact_email: initial.contact_email ?? "",
+      contact_phone: initial.contact_phone ?? "",
+      contact_address: initial.contact_address ?? "",
+      facebook_url: initial.facebook_url ?? "",
+      website_url: initial.website_url ?? "",
+      footer_note: initial.footer_note ?? "",
+    });
+  }, [initial]);
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="mt-4 max-w-3xl space-y-4 rounded-lg border bg-card p-4 sm:p-6">
+      {f.logo_url && (
+        <div className="flex items-center gap-3 rounded-md border bg-muted/30 p-3">
+          <img src={f.logo_url} alt="logo preview" className="h-14 w-14 rounded object-contain" />
+          <div className="text-sm">
+            <div className="font-semibold">{f.site_name || "Supershop"}</div>
+            {f.tagline && <div className="text-xs text-muted-foreground">{f.tagline}</div>}
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div><Label>সাইটের নাম *</Label><Input required value={f.site_name} onChange={(e) => setF({ ...f, site_name: e.target.value })} /></div>
+        <div><Label>ট্যাগলাইন</Label><Input value={f.tagline} onChange={(e) => setF({ ...f, tagline: e.target.value })} /></div>
+        <div><Label>লোগো URL</Label><Input value={f.logo_url} onChange={(e) => setF({ ...f, logo_url: e.target.value })} placeholder="https://..." /></div>
+        <div><Label>ফেভিকন URL</Label><Input value={f.favicon_url} onChange={(e) => setF({ ...f, favicon_url: e.target.value })} placeholder="https://..." /></div>
+      </div>
+
+      <div className="border-t pt-4">
+        <h3 className="mb-3 font-semibold text-sm">যোগাযোগের তথ্য</h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div><Label>ইমেইল</Label><Input type="email" value={f.contact_email} onChange={(e) => setF({ ...f, contact_email: e.target.value })} /></div>
+          <div><Label>ফোন</Label><Input value={f.contact_phone} onChange={(e) => setF({ ...f, contact_phone: e.target.value })} /></div>
+          <div className="sm:col-span-2"><Label>ঠিকানা</Label><Input value={f.contact_address} onChange={(e) => setF({ ...f, contact_address: e.target.value })} /></div>
+          <div><Label>ওয়েবসাইট</Label><Input value={f.website_url} onChange={(e) => setF({ ...f, website_url: e.target.value })} /></div>
+          <div><Label>ফেসবুক</Label><Input value={f.facebook_url} onChange={(e) => setF({ ...f, facebook_url: e.target.value })} /></div>
+        </div>
+      </div>
+
+      <div><Label>ফুটার/রিসিপ্ট নোট</Label><Textarea rows={2} value={f.footer_note} onChange={(e) => setF({ ...f, footer_note: e.target.value })} placeholder="যেমন: ধন্যবাদ আমাদের সাথে থাকার জন্য।" /></div>
+
+      <Button type="submit">সেভ করুন</Button>
+    </form>
+  );
+}
