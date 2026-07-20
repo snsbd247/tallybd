@@ -15,6 +15,8 @@ export const Route = createFileRoute("/admin/login")({ component: AdminLogin });
 function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { siteName, logoUrl } = useBranding();
+
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { session, isSuperAdmin, loading: authLoading } = useAuth();
