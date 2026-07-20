@@ -73,8 +73,11 @@ function Landing() {
       </main>
 
       <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Supershop
+        © {new Date().getFullYear()} {siteName}
+        {tagline && <span className="mx-2">·</span>}{tagline}
+        {footerNote && <div className="mt-1 text-xs">{footerNote}</div>}
       </footer>
+
     </div>
   );
 }
