@@ -137,30 +137,39 @@ function Page() {
         </div>
         <div>
           <Label>কাস্টমার {saleType !== "cash" && <span className="text-destructive">*</span>}</Label>
-          <Select value={customerId} onValueChange={setCustomerId}>
-            <SelectTrigger><SelectValue placeholder={saleType === "cash" ? "Walk-in (ঐচ্ছিক)" : "বাছাই করুন"} /></SelectTrigger>
-            <SelectContent>
-              {cust.data?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}{c.phone ? ` — ${c.phone}` : ""}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={customerId}
+            onChange={setCustomerId}
+            placeholder={saleType === "cash" ? "Walk-in (ঐচ্ছিক)" : "বাছাই করুন"}
+            searchPlaceholder="নাম / ফোন সার্চ..."
+            options={(cust.data ?? []).map((c: any) => ({
+              value: c.id,
+              label: c.name,
+              hint: c.phone ?? "",
+              keywords: `${c.name} ${c.phone ?? ""}`,
+            }))}
+          />
         </div>
         <div><Label>ইনভয়েস নং</Label><Input value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} placeholder="স্বয়ংক্রিয় হলে ফাঁকা রাখুন" /></div>
         <div><Label>তারিখ</Label><Input type="date" value={saleDate} onChange={(e) => setSaleDate(e.target.value)} /></div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border bg-card">
-        <div className="grid gap-2 border-b p-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,20rem)]">
-          <Input placeholder="পণ্য নাম / SKU / বারকোড দিয়ে খুঁজুন" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <Select value={productPick} onValueChange={addProduct}>
-            <SelectTrigger><SelectValue placeholder="বাছাই করে যোগ করুন" /></SelectTrigger>
-            <SelectContent>
-              {filteredProducts.slice(0, 50).map((p: any) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name} — স্টক {Number(p.stock_quantity).toFixed(2)} • ৳{Number(p.sale_price).toFixed(2)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="border-b p-4">
+          <Label className="mb-1 block">পণ্য যোগ করুন</Label>
+          <SearchableSelect
+            value=""
+            onChange={(v) => addProduct(v)}
+            placeholder="পণ্য বাছাই করে যোগ করুন"
+            searchPlaceholder="নাম / SKU / বারকোড..."
+            clearOnSelect
+            options={(prod.data ?? []).map((p: any) => ({
+              value: p.id,
+              label: p.name,
+              hint: `স্টক ${Number(p.stock_quantity).toFixed(2)} • ৳${Number(p.sale_price).toFixed(2)}`,
+              keywords: `${p.name} ${p.sku ?? ""} ${p.barcode ?? ""}`,
+            }))}
+          />
         </div>
         <table className="w-full min-w-[680px] text-sm">
           <thead className="bg-muted/50 text-left">
