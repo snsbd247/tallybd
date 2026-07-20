@@ -38,6 +38,7 @@ import { Route as AppSalesNewRouteImport } from './routes/app.sales.new'
 import { Route as AppSalesSaleIdRouteImport } from './routes/app.sales.$saleId'
 import { Route as AppPurchasesNewRouteImport } from './routes/app.purchases.new'
 import { Route as AdminShopsShopIdRouteImport } from './routes/admin.shops.$shopId'
+import { Route as AdminReceiptsPaymentIdRouteImport } from './routes/admin.receipts.$paymentId'
 import { Route as ApiPublicCronExpiryCheckRouteImport } from './routes/api/public/cron/expiry-check'
 import { Route as ApiPublicBkashCallbackRouteImport } from './routes/api/public/bkash/callback'
 
@@ -186,6 +187,11 @@ const AdminShopsShopIdRoute = AdminShopsShopIdRouteImport.update({
   path: '/$shopId',
   getParentRoute: () => AdminShopsRoute,
 } as any)
+const AdminReceiptsPaymentIdRoute = AdminReceiptsPaymentIdRouteImport.update({
+  id: '/receipts/$paymentId',
+  path: '/receipts/$paymentId',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiPublicCronExpiryCheckRoute =
   ApiPublicCronExpiryCheckRouteImport.update({
     id: '/api/public/cron/expiry-check',
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/app/units': typeof AppUnitsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/admin/receipts/$paymentId': typeof AdminReceiptsPaymentIdRoute
   '/admin/shops/$shopId': typeof AdminShopsShopIdRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/sales/$saleId': typeof AppSalesSaleIdRoute
@@ -253,6 +260,7 @@ export interface FileRoutesByTo {
   '/app/units': typeof AppUnitsRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/admin/receipts/$paymentId': typeof AdminReceiptsPaymentIdRoute
   '/admin/shops/$shopId': typeof AdminShopsShopIdRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/sales/$saleId': typeof AppSalesSaleIdRoute
@@ -287,6 +295,7 @@ export interface FileRoutesById {
   '/app/units': typeof AppUnitsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/admin/receipts/$paymentId': typeof AdminReceiptsPaymentIdRoute
   '/admin/shops/$shopId': typeof AdminShopsShopIdRoute
   '/app/purchases/new': typeof AppPurchasesNewRoute
   '/app/sales/$saleId': typeof AppSalesSaleIdRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/app/units'
     | '/admin/'
     | '/app/'
+    | '/admin/receipts/$paymentId'
     | '/admin/shops/$shopId'
     | '/app/purchases/new'
     | '/app/sales/$saleId'
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
     | '/app/units'
     | '/admin'
     | '/app'
+    | '/admin/receipts/$paymentId'
     | '/admin/shops/$shopId'
     | '/app/purchases/new'
     | '/app/sales/$saleId'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/app/units'
     | '/admin/'
     | '/app/'
+    | '/admin/receipts/$paymentId'
     | '/admin/shops/$shopId'
     | '/app/purchases/new'
     | '/app/sales/$saleId'
@@ -611,6 +623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminShopsShopIdRouteImport
       parentRoute: typeof AdminShopsRoute
     }
+    '/admin/receipts/$paymentId': {
+      id: '/admin/receipts/$paymentId'
+      path: '/receipts/$paymentId'
+      fullPath: '/admin/receipts/$paymentId'
+      preLoaderRoute: typeof AdminReceiptsPaymentIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/public/cron/expiry-check': {
       id: '/api/public/cron/expiry-check'
       path: '/api/public/cron/expiry-check'
@@ -649,6 +668,7 @@ interface AdminRouteChildren {
   AdminSmsLogsRoute: typeof AdminSmsLogsRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminReceiptsPaymentIdRoute: typeof AdminReceiptsPaymentIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -660,6 +680,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSmsLogsRoute: AdminSmsLogsRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminReceiptsPaymentIdRoute: AdminReceiptsPaymentIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
