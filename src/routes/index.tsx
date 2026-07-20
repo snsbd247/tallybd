@@ -373,12 +373,6 @@ function Landing() {
                 <li><Link to="/login" className="hover:text-foreground">লগিন</Link></li>
               </ul>
             </div>
-            <div>
-              <h4 className="text-sm font-bold">এডমিন</h4>
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/admin/login" className="hover:text-foreground">সুপার এডমিন</Link></li>
-              </ul>
-            </div>
           </div>
           <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t pt-6 text-center text-xs text-muted-foreground sm:flex-row sm:text-left">
             <div>© {new Date().getFullYear()} {siteName}. সর্বস্বত্ব সংরক্ষিত।</div>
