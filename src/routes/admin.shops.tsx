@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2 } from "lucide-react";
+import { Plus, Lock, Unlock, CalendarPlus, Eye, Trash2, Loader2 } from "lucide-react";
 
 
 export const Route = createFileRoute("/admin/shops")({ component: ShopsPage });
@@ -26,6 +26,7 @@ function ShopsPage() {
   const extendFn = useServerFn(extendShopSubscription);
   const delFn = useServerFn(deleteShop);
   const [delId, setDelId] = useState<string | null>(null);
+  const [navId, setNavId] = useState<string | null>(null);
 
   const shops = useQuery({ queryKey: ["shops"], queryFn: () => listFn() });
   const pkgs = useQuery({ queryKey: ["packages"], queryFn: () => pkgsFn() });
@@ -139,7 +140,17 @@ function ShopsPage() {
                 <td className="px-4 py-3">{s.subscription_end ? new Date(s.subscription_end).toLocaleDateString("bn-BD") : "-"}</td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1">
-                    <Link to="/admin/shops/$shopId" params={{ shopId: s.id }} title="বিস্তারিত" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent"><Eye className="h-4 w-4" /></Link>
+                    <Link
+                      to="/admin/shops/$shopId"
+                      params={{ shopId: s.id }}
+                      preload="intent"
+                      title="বিস্তারিত"
+                      aria-busy={navId === s.id}
+                      onClick={() => setNavId(s.id)}
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent ${navId === s.id ? "pointer-events-none opacity-60" : ""}`}
+                    >
+                      {navId === s.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+                    </Link>
                     <Button size="sm" variant="ghost" title="১ মাস বাড়ান" onClick={() => extend(s.id)}><CalendarPlus className="h-4 w-4" /></Button>
                     <Button size="sm" variant="ghost" title={s.status === "locked" ? "আনলক" : "লক"} onClick={() => toggleLock(s.id, s.status)}>
                       {s.status === "locked" ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
